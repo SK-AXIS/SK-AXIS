@@ -12,7 +12,7 @@ router = APIRouter()
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@router.post("/stt")
+@router.post("/")
 async def stt_api(audio: UploadFile = File(...)):
     """
     업로드된 오디오 파일을 Whisper API로 전사하여 텍스트를 반환
