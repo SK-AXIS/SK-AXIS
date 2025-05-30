@@ -1,17 +1,29 @@
+# app/schemas/interview.py
+
 from pydantic import BaseModel
-from datetime import datetime
+from typing import List, Literal
 
-class InterviewCreate(BaseModel):
-    user_id: int
-    question: str
-    competency: str  # 'Passionate', 'Professional', 'Proactive', 'People', 'Personal'
 
-class InterviewOut(BaseModel):
-    id: int
-    user_id: int
-    question: str
-    competency: str
-    created_at: datetime
+class StartInterviewRequest(BaseModel):
+    interviewee_id: int
+    interviewer_id: int
 
-    class Config:
-        orm_mode = True
+
+class Question(BaseModel):
+    question_id: int
+    type: Literal["공통질문", "개별질문"]
+    content: str
+
+
+class StartInterviewResponse(BaseModel):
+    questions: List[Question]
+    status: str
+
+
+class EndInterviewRequest(BaseModel):
+    interview_id: int
+
+
+class EndInterviewResponse(BaseModel):
+    result: str
+    report_ready: bool

@@ -1,46 +1,47 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-import os
-import shutil
-from app.services.stt_service import convert_audio_to_wav, transcribe_audio_file
-from dotenv import load_dotenv
-
-load_dotenv()
+import os, shutil, subprocess, uuid
 
 router = APIRouter()
-
-# 📁 업로드 디렉토리 (routers/uploads/ 내 uploads 디렉토리와 동일한 위치에 생성됨)
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+def extract_audio_from_video(video_path: str, audio_path: str):
+    command = [
+        "ffmpeg", "-i", video_path,
+        "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+        audio_path, "-y"
+    ]
+    subprocess.run(command, check=True)
+
 @router.post("/")
-async def stt_api(audio: UploadFile = File(...)):
-    """
-    업로드된 오디오 파일을 Whisper API로 전사하여 텍스트를 반환
-    """
+async def upload_chunk(video_chunk: UploadFile = File(...)):
+    unique_id = str(uuid.uuid4())
+    video_path = os.path.join(UPLOAD_DIR, f"{unique_id}.webm")
+    audio_path = os.path.join(UPLOAD_DIR, f"{unique_id}.wav")
+
+    with open(video_path, "wb") as buffer:
+        shutil.copyfileobj(video_chunk.file, buffer)
+
     try:
-        # 저장 경로 설정
-        input_path = os.path.join(UPLOAD_DIR, audio.filename)
-        wav_path = os.path.splitext(input_path)[0] + ".wav"
+        extract_audio_from_video(video_path, audio_path)
+        from app.services.stt_service import transcribe_audio_file
+        text = transcribe_audio_file(audio_path)
 
-        # 파일 저장
-        with open(input_path, "wb") as f:
-            shutil.copyfileobj(audio.file, f)
+        text_file_path = os.path.join(UPLOAD_DIR, f"{unique_id}.txt")
+        with open(text_file_path, "w", encoding="utf-8") as f:
+            f.write(text)
 
-        # WAV로 변환
-        convert_audio_to_wav(input_path, wav_path)
+        # ❌ 여기가 문제 → 평가 호출 (async 함수인데 await 없음)
+        # from app.services.evaluation_service import evaluate_answer
+        # evaluation_result = evaluate_answer(text)  ← ❌
 
-        # Whisper API 호출
-        result_text = transcribe_audio_file(wav_path)
-
-        # 임시 파일 삭제
-        os.remove(input_path)
-        os.remove(wav_path)
-
-        return {"transcription": result_text}
+        return {"transcription": text}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+####화자 분리 코드####
 
 # from fastapi import APIRouter, UploadFile, File
 # import shutil
@@ -73,9 +74,9 @@ async def stt_api(audio: UploadFile = File(...)):
 #
 #     try:
 #         response = client.chat.completions.create(
-#             model="gpt-4o-mini",  # 또는 "gpt-3.5-turbo"
-#             messages=[{"role": "user", "content": prompt}],
-#             temperature=0,
+#         model="gpt-4o-mini",  # 또는 "gpt-3.5-turbo"
+#         messages=[{"role": "user", "content": prompt}],
+#         temperature=0,
 #         )
 #         return json.loads(response.choices[0].message.content)
 #     except Exception as e:

@@ -8,6 +8,8 @@ import openai
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
+# 키워드 추가 예정
 # 5P 기반 Evaluation criteria definitions
 EVAL_CRITERIA = {
     "Passionate": ["끈질긴 도전", "자신감과 열정", "고객 중심 문제 해결 노력"],
@@ -73,7 +75,7 @@ async def evaluate_answer(
 
     return scores, total, round(elapsed, 2)
 
-# 🔍 벡터 기반 키워드 검색 보조 (선택적 활용)
+# 벡터 기반 키워드 검색 보조
 # from app.services.vector_service import search_related_keywords
 
 # def enrich_evaluation_with_keywords(answer_text: str) -> str:
