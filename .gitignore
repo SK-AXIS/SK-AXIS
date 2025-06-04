@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env
+venv/
+env/
+
+# Logs
+*.log
+
+# Results
+ai/result/
+ai/app/results/
+
+# Test files
+ai/test_detection.py 
