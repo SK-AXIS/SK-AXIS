@@ -1,43 +1,39 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
-from app.routers import (
-    interview_router,
-    internal_router,
-    stt_router,
-    rewrite_router,
-    nonverbal_router
-)
+# app/main.py
 
-# 환경 변수 로드
-load_dotenv()
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from .routers.interview_router import router as interview_router
+from .routers.internal_router import router as internal_router
 
 app = FastAPI(
-    title="AI Interview System API",
-    version="1.0",
-    description="AI 기반 면접 평가 플랫폼의 API 문서"
+    title="SK AXIS AI Interview FastAPI",
+    description="AI 면접 실시간 녹음, 비언어적 분석, 평가 및 결과물 생성 API",
+    version="1.0.0"
 )
 
-# 정적 파일 서빙
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# 라우터 등록
-app.include_router(interview_router.router, prefix="/interview", tags=["Interview"])
-app.include_router(internal_router.router)
-app.include_router(rewrite_router.router, prefix="/api")
-app.include_router(nonverbal_router.router, prefix="/api")
-
-# CORS 설정
+# ─── CORS 설정 (필요하다면) ───
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 실제 운영 환경에서는 특정 도메인만 허용하도록 수정
+    allow_origins=["*"],      # 실제 서비스라면 허용 도메인을 제한하세요.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Interview Analysis API"}
+
+
+# ─── API 라우터 등록 ───
+app.include_router(interview_router, prefix="/api/v1")
+app.include_router(internal_router, prefix="/api/v1")
+
+
+# ─── static 디렉토리를 "/"에 마운트 ───
+# project_root/ai/app/static/index.html 이 존재해야 합니다.
+app.mount(
+    "/",
+    StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static"), html=True),
+    name="static"
+)
