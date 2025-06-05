@@ -1,0 +1,77 @@
+[
+  {
+    "competency": "Professional",
+    "question": "리더십을 발휘했던 경험을 말씀해 주세요.",
+    "answer_raw": "사실은요... 제가 대학교 때 동아리 회장을 맡았을 때의 경험입니다 ..."
+  },
+  {
+    "competency": "Professional",
+    "question": "그 상황에서 팀원들과의 갈등이 있었다면 어떻게 해결하셨나요?",
+    "answer_raw": "음... 한 팀원이 맡은 일을 이행하지 않으면서 갈등이 발생했습니다 ..."
+  },
+  {
+    "competency": "Professional",
+    "question": "그 경험이 본인의 리더십에 어떤 영향을 주었나요?",
+    "answer_raw": "그... 그 경험을 통해 저는 경청의 중요성을 배웠고 ..."
+  },
+  {
+    "competency": "People",
+    "question": "협업을 통해 문제를 해결한 경험이 있다면 말씀해 주세요.",
+    "answer_raw": "이제... 캡스톤 디자인 프로젝트에서 4명이 함께 웹 서비스를 개발했습니다 ..."
+  },
+  {
+    "competency": "People",
+    "question": "당시 팀원 간 역할 분담은 어떻게 이루어졌나요?",
+    "answer_raw": "이제... 저희는 초기 회의에서 각자의 강점을 기반으로 역할을 분배했고 ..."
+  },
+  {
+    "competency": "People",
+    "question": "협업 과정에서 가장 중요하다고 생각한 요소는 무엇인가요?",
+    "answer_raw": "뭐랄까... 협업에서 가장 중요한 건 신뢰라고 생각합니다 ..."
+  },
+  {
+    "competency": "Passionate",
+    "question": "어려운 과제나 도전에 직면했던 경험이 있다면 말씀해 주세요.",
+    "answer_raw": "저기... 저는 한 번도 해본 적 없는 알고리즘 경진대회에 참여한 경험이 있습니다 ..."
+  },
+  {
+    "competency": "Passionate",
+    "question": "그 상황에서 왜 도전하기로 결심하셨나요?",
+    "answer_raw": "그... 도전하게 된 계기는 제 실력을 객관적으로 검증받고 싶다는 열망 때문이었습니다 ..."
+  },
+  {
+    "competency": "Passionate",
+    "question": "그 도전의 결과는 본인에게 어떤 의미였나요?",
+    "answer_raw": "음... 결과는 수상에는 실패했지만, 그 과정에서 얻게 된 실력과 자신감은 제 성장에 큰 영향을 주었습니다 ..."
+  },
+  {
+    "competency": "Proactive",
+    "question": "오랜 시간 끈기 있게 노력했던 경험이 있다면 말씀해 주세요.",
+    "answer_raw": "이제... 6개월간 준비한 자격증 시험이 있었습니다 ..."
+  },
+  {
+    "competency": "Proactive",
+    "question": "그 과정에서 포기하고 싶었던 적은 없었나요?",
+    "answer_raw": "음... 포기하고 싶었던 순간은 많았습니다 ..."
+  },
+  {
+    "competency": "Proactive",
+    "question": "그 경험이 본인의 일 처리 방식에 어떤 영향을 주었나요?",
+    "answer_raw": "뭐랄까... 그 경험 덕분에 저는 목표를 향해 묵묵히 가는 힘을 키웠고 ..."
+  },
+  {
+    "competency": "Personal",
+    "question": "창의적인 아이디어로 문제를 해결한 경험이 있다면 말씀해 주세요.",
+    "answer_raw": "그러니까... 동아리에서 행사 참여율이 낮아 고민하던 중 ..."
+  },
+  {
+    "competency": "Personal",
+    "question": "그 아이디어는 어떻게 떠올리게 되었나요?",
+    "answer_raw": "사실은요... 그 아이디어는 다른 커뮤니티에서 운영되는 챌린지 프로그램을 참고하면서 떠올렸습니다 ..."
+  },
+  {
+    "competency": "Personal",
+    "question": "그 아이디어가 적용되었을 때 팀의 반응은 어땠나요?",
+    "answer_raw": "음... 실제로 멤버들의 참여율이 2배 이상 증가했고 ..."
+  }
+]
