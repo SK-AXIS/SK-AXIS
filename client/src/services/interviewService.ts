@@ -24,7 +24,7 @@ export const getInterviewSchedules = async (date: string): Promise<ScheduleRespo
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ date })
+      // body: JSON.stringify({ date })
     });
 
     return response.json();
