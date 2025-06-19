@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import InterviewerLogin from './components/InterviewerLogin.vue' // Login 컴포넌트 추가
 import InterviewSetup from './components/InterviewSetup.vue'
 import Interview from './components/Interview.vue'
 import InterviewResult from './components/InterviewResult.vue'
@@ -18,8 +19,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'login',
+      component: InterviewerLogin // 메인 페이지를 InterviewerLogin으로 변경
+    },
+    {
+      path: '/setup',
       name: 'setup',
-      component: InterviewSetup
+      component: InterviewSetup // InterviewSetup을 /setup 경로로 이동
     },
     {
       path: '/interview',
@@ -29,6 +35,7 @@ const router = createRouter({
         roomName: route.query.roomName as string,
         timeRange: route.query.timeRange as string,
         interviewers: route.query.interviewers as string,
+        interviewerIds: JSON.parse(route.query.interviewerIds as string || '[]'),
         candidates: JSON.parse(route.query.candidates as string || '[]'),
         candidateIds: JSON.parse(route.query.candidateIds as string || '[]')
       })
@@ -53,4 +60,4 @@ const router = createRouter({
 
 const app = createApp(App)
 app.use(router)
-app.mount('#app') 
+app.mount('#app')

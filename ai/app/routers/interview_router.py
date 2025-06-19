@@ -58,15 +58,31 @@ async def start_interview(req: StartInterviewRequest):
 
 @router.post("/end", response_model=EndInterviewResponse)
 async def end_interview(req: EndInterviewRequest):
+    """
+    인터뷰 종료: 각 면접자의 비언어적 데이터를 처리하고 최종 보고서를 생성합니다.
+    """
     try:
-        for iv in req.interviewees:
-            state = INTERVIEW_STATE_STORE.get(iv.interviewee_id)
+        # req.data의 각 면접자 ID와 비언어적 데이터를 처리
+        for interviewee_id, nonverbal_data in req.data.items():
+            # 문자열 ID를 정수로 변환
+            interviewee_id_int = int(interviewee_id)
+            
+            # 상태 확인
+            state = INTERVIEW_STATE_STORE.get(interviewee_id_int)
             if not state:
-                raise HTTPException(status_code=404, detail=f"{iv.interviewee_id} 상태 없음")
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"면접자 ID {interviewee_id}의 상태 정보가 없습니다."
+                )
 
+            # 마지막 오디오 세그먼트 처리
             await process_last_audio_segment(state)
-            save_nonverbal_counts(state, iv)
+            
+            # 비언어적 데이터 저장
+            # IntervieweeEndData 대신 직접 nonverbal_data 사용
+            save_nonverbal_counts(state, nonverbal_data)
 
+            # 최종 보고서 생성
             await final_report_flow_executor(state)
 
         return EndInterviewResponse(result="done", report_ready=True)
