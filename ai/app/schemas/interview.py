@@ -12,7 +12,7 @@ class FacialExpression(BaseModel):
     frown: int
     angry: int
 
-class IntervieweeNonverbalData(BaseModel):
+class NonverbalData(BaseModel):
     posture: Posture
     facial_expression: FacialExpression
     gaze: int
@@ -34,7 +34,7 @@ class StartInterviewResponse(BaseModel):
 
 class EndInterviewRequest(BaseModel):
     interview_id: int
-    data: Dict[str, IntervieweeNonverbalData]
+    data: Dict[str, NonverbalData]
 
 class EndInterviewResponse(BaseModel):
     result: str

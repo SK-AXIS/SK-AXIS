@@ -9,7 +9,8 @@ from app.schemas.interview import (
     StartInterviewResponse,
     EndInterviewRequest,
     EndInterviewResponse,
-    STTUploadResponse
+    STTUploadResponse,
+    Question
 )
 from app.services.internal_client import fetch_interviewee_questions
 from app.services.pipeline.graph_pipeline import final_report_flow_executor, interview_flow_executor
@@ -60,8 +61,14 @@ async def start_interview(req: StartInterviewRequest):
 async def end_interview(req: EndInterviewRequest):
     """
     인터뷰 종료: 각 면접자의 비언어적 데이터를 처리하고 최종 보고서를 생성합니다.
+    
+    - interview_id: 면접 세션 ID
+    - data: 면접자별 비언어적 데이터 (Dict[str, NonverbalData])
     """
     try:
+        # interview_id 저장
+        interview_id = req.interview_id
+        
         # req.data의 각 면접자 ID와 비언어적 데이터를 처리
         for interviewee_id, nonverbal_data in req.data.items():
             # 문자열 ID를 정수로 변환
@@ -75,11 +82,13 @@ async def end_interview(req: EndInterviewRequest):
                     detail=f"면접자 ID {interviewee_id}의 상태 정보가 없습니다."
                 )
 
+            # interview_id를 상태에 추가
+            state["interview_id"] = interview_id
+            
             # 마지막 오디오 세그먼트 처리
             await process_last_audio_segment(state)
             
             # 비언어적 데이터 저장
-            # IntervieweeEndData 대신 직접 nonverbal_data 사용
             save_nonverbal_counts(state, nonverbal_data)
 
             # 최종 보고서 생성
@@ -87,6 +96,8 @@ async def end_interview(req: EndInterviewRequest):
 
         return EndInterviewResponse(result="done", report_ready=True)
 
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=f"잘못된 요청 형식: {str(ve)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
