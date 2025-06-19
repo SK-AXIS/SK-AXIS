@@ -362,3 +362,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnkserver/spring/src/main/resources/application.yml
+
+ai/.env.local
