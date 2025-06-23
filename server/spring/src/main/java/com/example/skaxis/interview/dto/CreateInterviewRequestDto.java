@@ -14,5 +14,8 @@ public class CreateInterviewRequestDto {
     private int orderNo;
     private String status;
     private Long[] intervieweeIds;
+<<<<<<< HEAD
     private Long[] interviewerIds;
+=======
+>>>>>>> origin/main
 }

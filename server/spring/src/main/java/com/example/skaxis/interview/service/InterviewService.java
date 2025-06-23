@@ -33,7 +33,11 @@ public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final IntervieweeRepository intervieweeRepository;
     private final UserRepository userRepository;
+<<<<<<< HEAD
 
+=======
+    @Transactional(readOnly = true)
+>>>>>>> origin/main
     public GetInterviewsResponseDto getAllInterviews() {
         List<Interview> interviewList = interviewRepository.findAll();
 
@@ -89,7 +93,11 @@ public class InterviewService {
     public void updateInterview(UpdateInterviewRequestDto updateInterviewRequestDto, Long interviewId) {
         Interview interview = interviewRepository.findById(interviewId)
             .orElseThrow(() -> new RuntimeException("Interview not found"));
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/main
         if (updateInterviewRequestDto.getRoomNo() != null) {
             interview.setRoomNo(updateInterviewRequestDto.getRoomNo());
         }
@@ -116,6 +124,7 @@ public class InterviewService {
                 //TODO: Handle score, comment, pdfPath, excelPath, sttPath if needed
             }
         }
+<<<<<<< HEAD
 
         if (updateInterviewRequestDto.getInterviewerIds() != null) {
             // InterviewerAssignment 대신 문자열로 저장
@@ -128,6 +137,11 @@ public class InterviewService {
             interview.setInterviewers(String.join(",", interviewerNames));
         }
 
+=======
+    
+        // interviewerIds 관련 코드 제거됨
+        
+>>>>>>> origin/main
         interviewRepository.save(interview);
     }
 
@@ -147,7 +161,11 @@ public class InterviewService {
             .map(i -> new GetInterviewByIdResponseDto.IntervieweeDto(
                 i.getInterviewee().getIntervieweeId(),
                 i.getInterviewee().getName(),
+<<<<<<< HEAD
                 i.getInterviewee().getApplicantCode(),
+=======
+//                i.getInterviewee().getApplicantCode(),
+>>>>>>> origin/main
                 i.getCreatedAt().toString()))
             .toArray(GetInterviewByIdResponseDto.IntervieweeDto[]::new));
 

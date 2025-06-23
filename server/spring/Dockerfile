@@ -1,6 +1,10 @@
 # 빌드 스테이지
+<<<<<<< HEAD
 # 빌드 스테이지
 FROM gradle:8.7-jdk17 AS build
+=======
+FROM --platform=linux/amd64 gradle:8.7-jdk17 AS build
+>>>>>>> origin/main
 WORKDIR /app
 
 # Gradle Wrapper 및 프로젝트 파일 복사
@@ -10,7 +14,11 @@ COPY . .
 RUN ./gradlew build -x test
 
 # 실행 이미지 생성
+<<<<<<< HEAD
 FROM openjdk:17-slim
+=======
+FROM --platform=linux/amd64 openjdk:17-slim
+>>>>>>> origin/main
 WORKDIR /app
 
 # 빌드 결과 JAR 복사

@@ -73,6 +73,7 @@ paths:
       responses:
         '200':
           description: 생성 성공
+<<<<<<< HEAD
           content:
             application/json:
               schema:
@@ -371,11 +372,113 @@ paths:
               schema:
                 type: string
                 example: "No detailed schedule found for the given date"
+=======
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Interview created successfully"
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: 서버 오류
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/interviews/{interviewId}:
+    get:
+      tags:
+        - 면접 관리
+      summary: 특정 면접 조회
+      description: ID로 특정 면접 세션의 상세 정보를 조회합니다.
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          description: 면접 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInterviewByIdResponseDto'
+        '400':
+          description: 잘못된 면접 ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 면접을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - 면접 관리
+      summary: 면접 정보 수정
+      description: 기존 면접 세션의 정보를 수정합니다.
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          description: 면접 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInterviewRequestDto'
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Interview updated successfully"
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+>>>>>>> origin/main
+        '500':
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+<<<<<<< HEAD
                 type: string
                 example: "Internal Server Error"
 
@@ -415,6 +518,531 @@ paths:
         '200':
           description: 파일 다운로드 성공
           content:
+=======
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - 면접 관리
+      summary: 면접 삭제
+      description: 특정 면접 세션을 삭제합니다.
+      parameters:
+        - name: interviewId
+          in: path
+          required: true
+          description: 면접 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Interview deleted successfully"
+        '400':
+          description: 잘못된 면접 ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # InterviewController에 통합된 면접 대상자 관련 엔드포인트들
+  /api/v1/interviews/simple:
+    get:
+      tags:
+        - 면접 관리
+      summary: 면접 대상자 목록 조회
+      description: 필터 조건에 따라 면접 대상자 목록을 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+        - name: status
+          in: query
+          required: false
+          description: 면접 상태
+          schema:
+            type: string
+            example: "SCHEDULED"
+        - name: position
+          in: query
+          required: false
+          description: 직무
+          schema:
+            type: string
+            example: "백엔드 개발자"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntervieweeListResponseDto'
+        '404':
+          description: 면접 대상자가 없음
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "No interviewees found"
+        '500':
+          description: 서버 오류
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Internal Server Error"
+
+  /api/v1/interviews/schedule:
+    get:
+      tags:
+        - 면접 관리
+      summary: 날짜별 면접 일정 조회
+      description: 특정 날짜의 면접 일정 정보를 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleInterviewScheduleResponseDto'
+        '404':
+          description: 해당 날짜에 일정이 없음
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "No schedule found for the given date"
+        '500':
+          description: 서버 오류
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Internal Server Error"
+
+  /api/v1/interviews/schedule/all:
+    get:
+      tags:
+        - 면접 관리
+      summary: 전체 면접 일정 조회
+      description: 모든 날짜의 면접 일정 정보를 조회합니다.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 면접 상태별 필터
+          schema:
+            type: string
+            example: "SCHEDULED"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleInterviewScheduleResponseDto'
+        '404':
+          description: 일정이 없음
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "No schedules found"
+        '500':
+          description: 서버 오류
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Internal Server Error"
+
+  /api/v1/interviews/schedule/detailed:
+    get:
+      tags:
+        - 면접 관리
+      summary: 상세한 날짜별 면접 일정 조회
+      description: 특정 날짜의 면접 일정 정보를 상세한 형식으로 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewScheduleResponseDto'
+        '404':
+          description: 해당 날짜에 상세 일정이 없음
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "No detailed schedule found for the given date"
+        '500':
+          description: 서버 오류
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Internal Server Error"
+
+  # 면접 대상자 관리 API (IntervieweeController)
+  /api/v1/interviewees/simple:
+    get:
+      tags:
+        - 면접 대상자 관리
+      summary: 면접 대상자 목록 조회
+      description: 필터 조건에 따라 면접 대상자 목록을 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+        - name: status
+          in: query
+          required: false
+          description: 면접 상태
+          schema:
+            type: string
+            example: "SCHEDULED"
+        - name: position
+          in: query
+          required: false
+          description: 직무
+          schema:
+            type: string
+            example: "백엔드 개발자"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntervieweeListResponseDto'
+        '400':
+          description: 잘못된 요청
+
+  /api/v1/interviewees/interviews:
+    get:
+      tags:
+        - 면접 대상자 관리
+      summary: 날짜별 면접 일정 조회
+      description: 특정 날짜의 면접 일정 정보를 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleInterviewScheduleResponseDto'
+        '400':
+          description: 잘못된 요청
+
+  /api/v1/interviewees/interviews/all:
+    get:
+      tags:
+        - 면접 대상자 관리
+      summary: 전체 면접 일정 조회
+      description: 모든 날짜의 면접 일정 정보를 조회합니다.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 면접 상태별 필터
+          schema:
+            type: string
+            example: "SCHEDULED"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleInterviewScheduleResponseDto'
+        '400':
+          description: 잘못된 요청
+
+  /api/v1/interviewees/interviews/detailed:
+    get:
+      tags:
+        - 면접 대상자 관리
+      summary: 상세한 날짜별 면접 일정 조회
+      description: 특정 날짜의 면접 일정 정보를 상세한 형식으로 조회합니다.
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: 면접 날짜 (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewScheduleResponseDto'
+        '400':
+          description: 잘못된 요청
+
+  # 질문 관리 API (QuestionController)
+  /api/v1/questions:
+    get:
+      tags:
+        - 질문 관리
+      summary: 질문 목록 조회
+      description: 면접 질문 목록을 조회합니다.
+      parameters:
+        - name: interview_id
+          in: query
+          required: false
+          description: 면접 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: type
+          in: query
+          required: false
+          description: 질문 타입
+          schema:
+            type: string
+            enum: ["공통질문", "개별질문"]
+            example: "공통질문"
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid interview_id"
+
+    post:
+      tags:
+        - 질문 관리
+      summary: 질문 생성
+      description: 새로운 면접 질문을 생성합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to create question. Please check the request data."
+
+  /api/v1/questions/{question_id}:
+    put:
+      tags:
+        - 질문 관리
+      summary: 질문 수정
+      description: 기존 질문을 수정합니다.
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          description: 질문 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionUpdateRequest'
+      responses:
+        '200':
+          description: 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid question_id"
+
+    delete:
+      tags:
+        - 질문 관리
+      summary: 질문 삭제
+      description: 질문을 삭제합니다.
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          description: 질문 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: 삭제 성공
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid question_id"
+
+  # 내부 질문 관리 API (InternalQuestionController)
+  /api/v1/internal/interviewees/questions:
+    post:
+      tags:
+        - 내부 질문 관리
+      summary: 다중 지원자 질문 조회
+      description: 여러 면접 대상자에 대한 질문을 조회합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultipleIntervieweeQuestionsRequest'
+      responses:
+        '200':
+          description: 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipleIntervieweeQuestionsResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request data: interviewee_ids is required"
+
+  # 면접 결과 관리 API (InterviewResultController)
+  /api/v1/results/{interview_id}/{interviewee_id}/download:
+    get:
+      tags:
+        - 면접 결과 관리
+      summary: 면접 결과 파일 다운로드
+      description: 면접 결과 파일을 다운로드합니다. (PDF, Excel, TXT 형식 지원)
+      parameters:
+        - name: interview_id
+          in: path
+          required: true
+          description: 면접 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: interviewee_id
+          in: path
+          required: true
+          description: 면접 대상자 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: type
+          in: query
+          required: true
+          description: 파일 타입
+          schema:
+            type: string
+            enum: [pdf, excel, txt]
+            example: "pdf"
+      responses:
+        '200':
+          description: 파일 다운로드 성공
+          content:
+>>>>>>> origin/main
             application/pdf:
               schema:
                 type: string
@@ -432,7 +1060,15 @@ paths:
           content:
             application/json:
               schema:
+<<<<<<< HEAD
                 $ref: '#/components/schemas/ErrorResponse'
+=======
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request data"
+>>>>>>> origin/main
 
   /api/v1/results/{interview_id}/{interviewee_id}/comment:
     put:
@@ -479,9 +1115,19 @@ paths:
           content:
             application/json:
               schema:
+<<<<<<< HEAD
                 $ref: '#/components/schemas/ErrorResponse'
 
   # 미디어 파일 관리 API
+=======
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid request data"
+
+  # 미디어 파일 관리 API (MediaController)
+>>>>>>> origin/main
   /api/v1/uploads/stt:
     post:
       tags:
@@ -517,7 +1163,11 @@ paths:
         '400':
           description: 잘못된 파일 또는 요청
           content:
+<<<<<<< HEAD
             application/json:
+=======
+            text/plain:
+>>>>>>> origin/main
               schema:
                 type: string
                 example: "Invalid file type. Please upload a valid STT text file."
@@ -551,14 +1201,35 @@ paths:
         '400':
           description: 잘못된 파일
           content:
+<<<<<<< HEAD
             application/json:
               schema:
                 type: string
                 example: "Invalid file type. Please upload a valid Excel file."
+=======
+            text/plain:
+              schema:
+                type: string
+                example: "Invalid file type. Please upload a valid Excel file."
+
+  # 사용자 관리 API (UserController)
+  /user:
+    get:
+      tags:
+        - 사용자 관리
+      summary: 사용자 정보 조회
+      description: 현재 사용자의 정보를 조회합니다.
+      responses:
+        '200':
+          description: 조회 성공
+        '401':
+          description: 인증 실패
+>>>>>>> origin/main
 
 components:
   schemas:
     # Request DTOs
+<<<<<<< HEAD
     CreateInterviewRequestDto:
       type: object
       required:
@@ -883,8 +1554,16 @@ components:
 
     # Entity Models
     Interviewee:
+=======
+    UserSignupRequest:
+>>>>>>> origin/main
       type: object
+      required:
+        - userName
+        - password
+        - name
       properties:
+<<<<<<< HEAD
         id:
           type: integer
           format: int64
@@ -913,8 +1592,30 @@ components:
           description: 생성 시간
 
     User:
+=======
+        userName:
+          type: string
+          description: 사용자명
+          example: "admin123"
+        password:
+          type: string
+          description: 비밀번호
+          example: "password123"
+        name:
+          type: string
+          description: 이름
+          example: "홍길동"
+
+    CreateInterviewRequestDto:
+>>>>>>> origin/main
       type: object
+      required:
+        - roomNo
+        - round
+        - scheduledAt
+        - orderNo
       properties:
+<<<<<<< HEAD
         id:
           type: integer
           format: int64
@@ -964,3 +1665,323 @@ security:
   - bearerAuth: [ ]
 
 
+=======
+        roomNo:
+          type: string
+          description: 면접실 번호
+          example: "A101"
+        round:
+          type: integer
+          description: 면접 라운드
+          example: 1
+        scheduledAt:
+          type: string
+          description: 면접 예정 시간
+          example: "2024-01-15T10:00:00"
+        orderNo:
+          type: integer
+          description: 면접 순서
+          example: 1
+        status:
+          type: string
+          description: 면접 상태
+          example: "SCHEDULED"
+        intervieweeIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 면접 대상자 ID 목록
+          example: [1, 2, 3]
+        interviewerIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 면접관 ID 목록
+          example: [1, 2]
+
+    UpdateInterviewRequestDto:
+      type: object
+      properties:
+        roomNo:
+          type: string
+          description: 면접실 번호
+          example: "A102"
+        round:
+          type: integer
+          description: 면접 라운드
+          example: 2
+        scheduledAt:
+          type: string
+          description: 면접 예정 시간
+          example: "2024-01-15T14:00:00"
+        orderNo:
+          type: integer
+          description: 면접 순서
+          example: 2
+        status:
+          type: string
+          description: 면접 상태
+          example: "IN_PROGRESS"
+
+    QuestionCreateRequest:
+      type: object
+      required:
+        - content
+        - type
+      properties:
+        content:
+          type: string
+          description: 질문 내용
+          example: "자기소개를 해주세요."
+        type:
+          type: string
+          enum: ["공통질문", "개별질문"]
+          description: 질문 타입
+          example: "공통질문"
+        interview_id:
+          type: integer
+          format: int64
+          description: 면접 ID
+          example: 1
+
+    QuestionUpdateRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: 질문 내용
+          example: "수정된 질문 내용입니다."
+        type:
+          type: string
+          enum: ["공통질문", "개별질문"]
+          description: 질문 타입
+          example: "개별질문"
+
+    MultipleIntervieweeQuestionsRequest:
+      type: object
+      required:
+        - interviewee_ids
+      properties:
+        interviewee_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 면접 대상자 ID 목록
+          example: [1, 2, 3]
+
+    CommentUpdateRequest:
+      type: object
+      required:
+        - comment
+      properties:
+        comment:
+          type: string
+          description: 수정할 코멘트
+          example: "면접 결과가 우수합니다."
+
+    # Response DTOs
+    GetInterviewsResponseDto:
+      type: object
+      properties:
+        interviewSessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewSession'
+
+    GetInterviewByIdResponseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        roomNo:
+          type: string
+          example: "A101"
+        round:
+          type: integer
+          example: 1
+        scheduledAt:
+          type: string
+          example: "2024-01-15T10:00:00"
+        orderNo:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "SCHEDULED"
+
+    IntervieweeListResponseDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interviewee'
+
+    SimpleInterviewScheduleResponseDto:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewSchedule'
+
+    InterviewScheduleResponseDto:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2024-01-15"
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetailedInterviewSchedule'
+
+    MultipleIntervieweeQuestionsResponse:
+      type: object
+      properties:
+        questions_per_interviewee:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/Question'
+
+    FileUploadResponseDto:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "File uploaded successfully"
+        fileName:
+          type: string
+          example: "interview_result.txt"
+        fileSize:
+          type: integer
+          format: int64
+          example: 1024
+
+    # Model DTOs
+    InterviewSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        roomNo:
+          type: string
+          example: "A101"
+        round:
+          type: integer
+          example: 1
+        scheduledAt:
+          type: string
+          example: "2024-01-15T10:00:00"
+        orderNo:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "SCHEDULED"
+
+    Interviewee:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "김철수"
+        position:
+          type: string
+          example: "백엔드 개발자"
+        status:
+          type: string
+          example: "SCHEDULED"
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        content:
+          type: string
+          example: "자기소개를 해주세요."
+        type:
+          type: string
+          enum: ["공통질문", "개별질문"]
+          example: "공통질문"
+        interview_id:
+          type: integer
+          format: int64
+          example: 1
+
+    InterviewSchedule:
+      type: object
+      properties:
+        time:
+          type: string
+          example: "10:00"
+        roomNo:
+          type: string
+          example: "A101"
+        interviewees:
+          type: array
+          items:
+            type: string
+          example: ["김철수", "이영희"]
+
+    DetailedInterviewSchedule:
+      type: object
+      properties:
+        time:
+          type: string
+          example: "10:00"
+        roomNo:
+          type: string
+          example: "A101"
+        round:
+          type: integer
+          example: 1
+        orderNo:
+          type: integer
+          example: 1
+        status:
+          type: string
+          example: "SCHEDULED"
+        interviewees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interviewee'
+        interviewers:
+          type: array
+          items:
+            type: string
+          example: ["박면접관", "최면접관"]
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Error message"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:00:00Z"
+        status:
+          type: integer
+          example: 400
+
+
+>>>>>>> origin/main

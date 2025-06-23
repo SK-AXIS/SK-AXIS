@@ -4,6 +4,10 @@ services:
   # MySQL 데이터베이스
   mysql:
     image: mysql:8.0
+<<<<<<< HEAD
+=======
+    platform: linux/amd64
+>>>>>>> origin/main
     container_name: sk-axis-mysql
     restart: always
     environment:
@@ -27,6 +31,10 @@ services:
   # Redis 캐시
   redis:
     image: redis:latest
+<<<<<<< HEAD
+=======
+    platform: linux/amd64
+>>>>>>> origin/main
     container_name: sk-axis-redis
     restart: always
     ports:
@@ -41,6 +49,11 @@ services:
     build:
       context: ./ai
       dockerfile: Dockerfile
+<<<<<<< HEAD
+=======
+      platforms:
+        - linux/amd64
+>>>>>>> origin/main
     container_name: sk-axis-fastapi
     restart: always
     ports:
@@ -62,6 +75,11 @@ services:
     build:
       context: ./server/spring
       dockerfile: Dockerfile
+<<<<<<< HEAD
+=======
+      platforms:
+        - linux/amd64
+>>>>>>> origin/main
     container_name: sk-axis-springboot
     restart: always
     ports:
@@ -90,6 +108,11 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+<<<<<<< HEAD
+=======
+      platforms:
+        - linux/amd64
+>>>>>>> origin/main
     container_name: sk-axis-vue
     restart: always
     ports:

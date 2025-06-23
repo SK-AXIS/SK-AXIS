@@ -29,4 +29,8 @@ export const getInterviewSchedules = async (date: string): Promise<ScheduleRespo
     console.error('면접 일정 조회 중 오류 발생:', error);
     throw error;
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> origin/main
