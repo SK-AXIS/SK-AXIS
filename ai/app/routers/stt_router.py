@@ -75,9 +75,9 @@ async def upload_stt(
                     return
 
                 # 타입 체크 및 추적 로그 추가
-                print(f"[TRACE] INTERVIEW_STATE_STORE 저장 전: interviewee_id={interviewee_id}, state type={type(state)}")
+                # print(f"[TRACE] INTERVIEW_STATE_STORE 저장 전: interviewee_id={interviewee_id}, state type={type(state)}")
                 if not isinstance(state, dict):
-                    print(f"[ERROR] [STT_ROUTER] state에 dict가 아닌 값이 저장되려 합니다! 실제 타입: {type(state)}, 값: {state}")
+                    # print(f"[ERROR] [STT_ROUTER] state에 dict가 아닌 값이 저장되려 합니다! 실제 타입: {type(state)}, 값: {state}")
                 INTERVIEW_STATE_STORE[interviewee_id] = state
                 print(f"[TRACE] INTERVIEW_STATE_STORE 저장 완료: interviewee_id={interviewee_id}, state type={type(INTERVIEW_STATE_STORE[interviewee_id])}")
 

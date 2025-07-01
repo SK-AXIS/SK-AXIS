@@ -522,36 +522,43 @@ async def pdf_node(state: InterviewState) -> InterviewState:
     import tempfile
 
     def calculate_personality_score(evaluation_results):
-        """인성(언어) 점수 계산: SUPEX, VWBE, Passionate, Proactive, Professional, People"""
         personality_keywords = ["SUPEX", "VWBE", "Passionate", "Proactive", "Professional", "People"]
         total_score = 0
-        
         for keyword in personality_keywords:
             if keyword in evaluation_results:
                 criteria = evaluation_results[keyword]
                 for criterion_name, criterion_data in criteria.items():
                     total_score += criterion_data.get("score", 0)
-        
         return total_score
 
     def calculate_job_domain_score(evaluation_results):
-        """기술/도메인 점수 계산: 실무 기술/지식의 깊이, 문제 해결 적용력, 학습 및 발전 가능성, 도메인 맥락 이해도, 실제 사례 기반 적용 능력, 전략적 사고력"""
         job_domain_keywords = ["실무 기술/지식의 깊이", "문제 해결 적용력", "학습 및 발전 가능성", 
                               "도메인 맥락 이해도", "실제 사례 기반 적용 능력", "전략적 사고력"]
         total_score = 0
-        
         for keyword in job_domain_keywords:
             if keyword in evaluation_results:
                 criteria = evaluation_results[keyword]
                 for criterion_name, criterion_data in criteria.items():
                     total_score += criterion_data.get("score", 0)
-        
         return total_score
 
+    # 디버깅: state의 타입과 주요 필드 출력
+    # print("[PDF_NODE][DEBUG] state type:", type(state))
+    # for field in ["evaluation", "rewrite", "stt", "report", "decision_log", "nonverbal_counts"]:
+        # v = state.get(field, "<없음>")
+        # print(f"[PDF_NODE][DEBUG] state['{field}']: type={type(v)}, value={v}")
+
     # 평가 결과 추출
-    evaluation_results = state.get("evaluation", {}).get("results", {})
-    rewrite_final = state.get("rewrite", {}).get("final", [])
-    
+    eval_field = state.get("evaluation", {})
+    # print(f"[PDF_NODE][DEBUG] state.get('evaluation'): type={type(eval_field)}, value={eval_field}")
+    eval_results = eval_field.get("results", {}) if isinstance(eval_field, dict) else {}
+    # print(f"[PDF_NODE][DEBUG] state.get('evaluation').get('results'): type={type(eval_results)}, value={eval_results}")
+    rewrite_field = state.get("rewrite", {})
+    # print(f"[PDF_NODE][DEBUG] state.get('rewrite'): type={type(rewrite_field)}, value={rewrite_field}")
+    rewrite_final = rewrite_field.get("final", []) if isinstance(rewrite_field, dict) else []
+    # print(f"[PDF_NODE][DEBUG] state.get('rewrite').get('final'): type={type(rewrite_final)}, value={rewrite_final}")
+
+    evaluation_results = eval_results
     if not evaluation_results:
         print("[LangGraph] ⚠️ 평가 결과가 없어서 PDF 생성을 건너뜁니다.")
         return state
@@ -559,8 +566,10 @@ async def pdf_node(state: InterviewState) -> InterviewState:
     # 답변 추출
     answers = []
     if not rewrite_final:
-        # final_items가 비어있으면 raw 텍스트 사용
-        stt_segments = state.get("stt", {}).get("segments", [])
+        stt_field = state.get("stt", {})
+        # print(f"[PDF_NODE][DEBUG] state.get('stt'): type={type(stt_field)}, value={stt_field}")
+        stt_segments = stt_field.get("segments", []) if isinstance(stt_field, dict) else []
+        # print(f"[PDF_NODE][DEBUG] state.get('stt').get('segments'): type={type(stt_segments)}, value={stt_segments}")
         if stt_segments:
             answers = [stt_segments[-1].get("raw", "답변 내용이 없습니다.")]
         else:
@@ -571,9 +580,8 @@ async def pdf_node(state: InterviewState) -> InterviewState:
     # 점수 계산
     personality_score = calculate_personality_score(evaluation_results)
     job_domain_score = calculate_job_domain_score(evaluation_results)
-    nonverbal_score = evaluation_results.get("비언어적", {}).get("score", 0)
-    
-    print(f"[LangGraph] 📊 계산된 점수 - 인성: {personality_score}, 기술/도메인: {job_domain_score}, 비언어: {nonverbal_score}")
+    nonverbal_score = evaluation_results.get("비언어적", {}).get("score", 0) if isinstance(evaluation_results.get("비언어적", {}), dict) else 0
+    print(f"[PDF_NODE][DEBUG] personality_score: {personality_score}, job_domain_score: {job_domain_score}, nonverbal_score: {nonverbal_score}")
 
     # 100점 만점 환산 (45%, 45%, 10%)
     max_personality = 90
@@ -609,11 +617,14 @@ async def pdf_node(state: InterviewState) -> InterviewState:
     keyword_results = {}
     for keyword, criteria in evaluation_results.items():
         if keyword != "비언어적":  # 비언어적은 별도 처리
+            if not isinstance(criteria, dict):
+                # print(f"[PDF_NODE][DEBUG][WARNING] criteria for keyword '{keyword}' is not dict! type={type(criteria)}, value={criteria}")
+                continue
             total_score = sum(criterion.get("score", 0) for criterion in criteria.values())
             keyword_results[keyword] = {
                 "score": total_score,
                 "reasons": "\n".join([f"{criterion_name}: {criterion.get('reason', '')}" 
-                                    for criterion_name, criterion in criteria.items()])
+                                        for criterion_name, criterion in criteria.items()])
             }
 
     # 총점 계산
@@ -634,7 +645,7 @@ async def pdf_node(state: InterviewState) -> InterviewState:
     applicant_id = state.get("interviewee_id")
     ts = datetime.now().strftime("%Y%m%d%H%M%S")
     out = RESULT_DIR; os.makedirs(out, exist_ok=True)
-    pdf_path = f"{out}/{applicant_id}_report_{ts}.pdf"
+    pdf_path = f"{out}/{applicant_id}_report_.pdf"
 
     try:
         generate_pdf(
@@ -671,74 +682,15 @@ async def pdf_node(state: InterviewState) -> InterviewState:
             "details": {"error": str(e)}
         })
         print(f"[LangGraph] ❌ PDF 생성 실패: {e}")
+        # 추가 디버깅: state 주요 필드 타입 및 값 출력
+        try:
+            # print("[PDF_NODE][EXCEPTION][DEBUG] state 주요 필드:")
+            # for field in ["evaluation", "rewrite", "stt", "report", "decision_log", "nonverbal_counts"]:
+                v = state.get(field, "<없음>")
+                # print(f"  {field}: type={type(v)}, value={v}")
+        except Exception as diag_e:
+            print(f"[PDF_NODE][EXCEPTION][DEBUG] state 구조 출력 중 오류: {diag_e}")
 
-    return state
-
-# ───────────────────────────────────────────────────
-# Excel Node: 지원자 ID로 이름 조회 후 엑셀 생성
-# ───────────────────────────────────────────────────
-async def excel_node(state: InterviewState) -> InterviewState:
-    import os
-    from datetime import datetime
-
-    try:
-        applicant_id = state.get("interviewee_id")
-        rewrite_final = state.get("rewrite", {}).get("final", [])
-        total_score = state.get("evaluation", {}).get("judge", {}).get("total_score")
-
-        # 1. 지원자 정보 조회
-        SPRINGBOOT_BASE_URL = os.getenv("SPRING_API_URL", "http://localhost:8080/api/v1")
-        applicant_name = None
-        interviewers = None
-        room_no = None
-        scheduled_at = None
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{SPRINGBOOT_BASE_URL}/interviews/simple")
-            print(f"[DEBUG] /interviews/simple status: {resp.status_code}")
-            print(f"[DEBUG] /interviews/simple response: {resp.text}")
-            if resp.status_code != 200:
-                raise RuntimeError(f"API 호출 실패: status={resp.status_code}, body={resp.text}")
-            data = resp.json().get("data", [])
-            for item in data:
-                if item["intervieweeId"] == applicant_id:
-                    applicant_name = item["name"]
-                    interviewers = item.get("interviewers", "")
-                    room_no = item.get("roomNo", "")
-                    scheduled = item.get("scheduledAt", [])
-                    if scheduled and len(scheduled) >= 5:
-                        scheduled_at = f"{scheduled[0]:04d}-{scheduled[1]:02d}-{scheduled[2]:02d} {scheduled[3]:02d}:{scheduled[4]:02d}"
-                    break
-
-        if applicant_name is None:
-            raise ValueError(f"지원자 정보를 찾을 수 없습니다. applicant_id={applicant_id}")
-
-        # 2. 답변 합치기
-        all_answers = "\n".join([item["rewritten"] for item in rewrite_final])
-
-        # 3. 엑셀 생성
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "면접 결과"
-        ws.append(["지원자ID", "이름", "면접관", "면접실", "면접일시", "답변(모두)", "총점"])
-        ws.append([applicant_id, applicant_name, interviewers, room_no, scheduled_at, all_answers, total_score])
-
-        out_dir = os.getenv("RESULT_DIR", "./result")
-        os.makedirs(out_dir, exist_ok=True)
-        ts = datetime.now().strftime("%Y%m%d%H%M%S")
-        excel_path = f"{out_dir}/{applicant_id}_result_{ts}.xlsx"
-        wb.save(excel_path)
-        print(f"[LangGraph] ✅ Excel 생성 완료: {excel_path}")
-
-        state.setdefault("report", {}).setdefault("excel", {})["path"] = excel_path
-        state.setdefault("decision_log", []).append({
-            "step": "excel_node",
-            "result": "generated",
-            "time": datetime.now().isoformat(),
-            "details": {"path": excel_path}
-        })
-    except Exception as e:
-        print(f"[LangGraph] ❌ Excel 생성 실패: {e}")
-        state.setdefault("report", {}).setdefault("excel", {})["error"] = str(e)
     return state
 
 # LangGraph 빌더
@@ -762,11 +714,11 @@ final_builder.add_node("nonverbal_eval", nonverbal_evaluation_agent)
 final_builder.add_node("evaluation_agent", evaluation_agent)
 final_builder.add_node("evaluation_judge_agent", evaluation_judge_agent)
 final_builder.add_node("pdf_node", pdf_node)
-final_builder.add_node("excel_node", excel_node)
+# final_builder.add_node("excel_node", excel_node)
 final_builder.set_entry_point("nonverbal_eval")
 final_builder.add_edge("nonverbal_eval", "evaluation_agent")
 final_builder.add_edge("evaluation_agent", "evaluation_judge_agent")
-final_builder.add_edge("pdf_node", "excel_node")
+# final_builder.add_edge("pdf_node", "excel_node")
 final_builder.add_conditional_edges(
     "evaluation_judge_agent", should_retry_evaluation,
     {"retry":"evaluation_agent", "continue":"pdf_node", "done":"__end__"}
