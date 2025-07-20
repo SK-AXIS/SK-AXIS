@@ -51,6 +51,30 @@ def stt_node(state: InterviewState) -> InterviewState:
         print(f"[LangGraph] ⚠️ 너무 짧은 답변 감지: {raw}")
         raw = "음성을 인식할 수 없습니다."
     
+    # 무의미한 STT 결과 필터링 - 평가 대상에서 제외
+    meaningless_patterns = [
+        "음성을 인식할 수 없습니다",
+        "기술적 문제로 음성을 인식할 수 없어 답변을 제공할 수 없습니다",
+        "음성을 명확하게 인식할 수 없습니다",
+        "음성 인식 실패",
+        "인식할 수 없습니다",
+        "음성 없음",
+        "무음",
+        "조용함"
+    ]
+    
+    if any(pattern in raw for pattern in meaningless_patterns):
+        print(f"[LangGraph] 🚫 무의미한 STT 결과 감지 - 평가 대상에서 제외: {raw}")
+        # 무의미한 결과는 저장하되 평가 대상에서 제외하기 위한 플래그 추가
+        state.setdefault("stt", {"done": False, "segments": []})
+        state["stt"]["segments"].append({
+            "raw": raw, 
+            "timestamp": datetime.now(KST).isoformat(),
+            "meaningless": True  # 평가 대상에서 제외할 플래그
+        })
+        print(f"[LangGraph] ✅ 무의미한 STT 결과 저장 (평가 제외): {raw[:50]}...")
+        return state
+    
     state.setdefault("stt", {"done": False, "segments": []})
     state["stt"]["segments"].append({"raw": raw, "timestamp": datetime.now(KST).isoformat()})
     

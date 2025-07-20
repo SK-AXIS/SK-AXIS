@@ -40,9 +40,27 @@ async def rewrite_agent(state: InterviewState) -> InterviewState:
     print("[LangGraph] ✏️ rewrite_agent 진입")
     stt = utils.safe_get(state, "stt", {}, context="rewrite_agent")
     stt_segments = utils.safe_get(stt, "segments", [], context="rewrite_agent")
-    raw = stt_segments[-1]["raw"] if stt_segments else "없음"
+    
+    if not stt_segments:
+        print("[LangGraph] ⚠️ STT 세그먼트가 없음")
+        return state
+    
+    # 마지막 STT 세그먼트 확인
+    last_segment = stt_segments[-1]
+    raw = last_segment.get("raw", "없음")
+    
+    # 무의미한 STT 결과인지 확인
+    if last_segment.get("meaningless", False):
+        print(f"[LangGraph] 🚫 무의미한 STT 결과 - 리라이팅 건너뜀: {raw}")
+        utils.add_decision_log(state, "rewrite_agent", "skipped", {
+            "reason": "meaningless_stt_result",
+            "raw": raw
+        })
+        return state
+    
     if not raw or not str(raw).strip():
         raw = "없음"
+    
     rewritten, _ = await rewrite_answer(raw)
     if not rewritten or not str(rewritten).strip():
         rewritten = "없음"
