@@ -120,8 +120,8 @@ async def rewrite_judge_agent(state: InterviewState) -> InterviewState:
                 "rewritten": item["rewritten"]
             })
             
-            item["ok"] = result.ok
-            item["judge_notes"] = result.judge_notes
+            item["ok"] = result.get("ok", False)
+            item["judge_notes"] = result.get("judge_notes", [])
 
             print(f"[DEBUG] 📊 판정 결과: ok={item['ok']}, notes={item['judge_notes']}")
 
@@ -460,10 +460,10 @@ async def evaluation_judge_agent(state: InterviewState) -> InterviewState:
         })
         
         state["evaluation"]["content_judge"] = {
-            "ok": result.ok,
-            "judge_notes": result.judge_notes
+            "ok": result.get("ok", False),
+            "judge_notes": result.get("judge_notes", [])
         }
-        print(f"[LangGraph] ✅ 내용 검증 결과: ok={result.ok}, notes={result.judge_notes}")
+        print(f"[LangGraph] ✅ 내용 검증 결과: ok={result.get('ok', False)}, notes={result.get('judge_notes', [])}")
     except Exception as e:
         print(f"[ERROR] content_validation_chain 실행 오류: {e}")
         state["evaluation"]["content_judge"] = {
