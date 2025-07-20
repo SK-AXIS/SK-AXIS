@@ -385,3 +385,13 @@ $RECYCLE.BIN/
 version
 introduction.mdx
 *.code-workspace
+
+# New documentation and portfolio files
+SK_AXIS_AI_면접평가시스템_기술요약서.txt
+portfolio_updated.md
+portfolio_job_tailored.md
+flow_diagram.md
+
+# Mirror directories
+SK-AXIS-mirror-new/
+SK-AXIS-mirror/
