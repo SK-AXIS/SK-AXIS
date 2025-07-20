@@ -1,7 +1,7 @@
 # app/services/pipeline/pipeline_chains.py
 
-from langchain.output_parsers import JsonOutputParser
-from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from app.schemas.pipeline_schemas import (
     RewriteJudgeResult,
