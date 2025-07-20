@@ -55,8 +55,12 @@ from app.constants.evaluation_constants_full_all import (
     DOMAIN_EVAL_CRITERIA_WITH_ALL_SCORES
 )
 
+# ──────────────── 🆕 새로운 체이닝 및 유틸리티 import ────────────────
+from .pipeline_chains import chains
+from .pipeline_utils import utils, KST
+
 # ──────────────── 🧠 GPT 프롬프트 템플릿 ────────────────
-# 리라이팅 검증용 프롬프트 (현재 사용 안 함 - 재시도 로직 비활성화)
+# 리라이팅 검증용 프롬프트 (체이닝으로 대체 예정)
 JUDGE_PROMPT = """
 시스템: 당신은 텍스트 리라이팅 평가 전문가입니다.
 원본: "{raw}"
@@ -67,59 +71,8 @@ JUDGE_PROMPT = """
 위 기준에 따라 JSON 형식으로 ok(bool)와 judge_notes(list)를 반환하세요.
 """
 
-# ──────────────── 🛠️ 유틸리티 함수 ────────────────
-KST = pytz.timezone('Asia/Seoul')
-
-def print_state_summary(state, node_name):
-    """
-    파이프라인 상태 요약 출력 함수 (디버깅용)
-    
-    Args:
-        state: 현재 파이프라인 상태
-        node_name: 현재 노드 이름
-        
-    Note:
-        - 각 단계별 처리 상태 및 데이터 타입 확인
-        - 디버깅 시 상태 추적에 유용
-    """
-    summary = {
-        "stt_segments": len(state.get("stt", {}).get("segments", [])),
-        "stt_type": type(state.get("stt", {})).__name__,
-        "rewrite_final": len(state.get("rewrite", {}).get("final", [])),
-        "rewrite_type": type(state.get("rewrite", {})).__name__,
-        "evaluation_keys": list(state.get("evaluation", {}).keys()) if isinstance(state.get("evaluation", {}), dict) else [],
-        "evaluation_type": type(state.get("evaluation", {})).__name__,
-        "nonverbal_counts": state.get("nonverbal_counts", {}),
-        "nonverbal_counts_type": type(state.get("nonverbal_counts", {})).__name__,
-        "report_keys": list(state.get("report", {}).keys()) if "report" in state and isinstance(state["report"], dict) else [],
-        "report_type": type(state.get("report", {})).__name__ if "report" in state else None,
-        "decision_log_len": len(state.get("decision_log", [])),
-        "decision_log_type": type(state.get("decision_log", [])).__name__
-    }
-
-
-def safe_get(d, key, default=None, context=""):
-    """
-    안전한 딕셔너리 접근 함수
-    
-    Args:
-        d: 딕셔너리 객체
-        key: 접근할 키
-        default: 기본값
-        context: 에러 발생 시 컨텍스트 정보
-        
-    Returns:
-        딕셔너리 값 또는 기본값
-        
-    Note:
-        - 예외 발생 시 기본값 반환
-        - 컨텍스트 정보로 에러 추적 가능
-    """
-    try:
-        return d.get(key, default)
-    except Exception as e:
-        print(f"[ERROR] [{context}] get('{key}') 예외 발생: {e}")
-        return default
+# ──────────────── 🛠️ 유틸리티 함수 (기존 함수들은 utils로 대체) ────────────────
+# print_state_summary와 safe_get 함수는 utils 클래스로 이동됨
     
 
 # ──────────────── 🎯 파이프라인 노드 정의 ────────────────
@@ -149,7 +102,7 @@ def stt_node(state: InterviewState) -> InterviewState:
     """
     print("[LangGraph] 🧠 stt_node 진입")
     
-    audio_path = safe_get(state, "audio_path", context="stt_node")
+    audio_path = utils.safe_get(state, "audio_path", context="stt_node")
     raw = transcribe_audio_file(audio_path)
     
     # 손상된 파일 또는 STT 실패 처리
@@ -192,8 +145,8 @@ async def rewrite_agent(state: InterviewState) -> InterviewState:
         - GPT-4o-mini 사용으로 비용 절약
     """
     print("[LangGraph] ✏️ rewrite_agent 진입")
-    stt = safe_get(state, "stt", {}, context="rewrite_agent")
-    stt_segments = safe_get(stt, "segments", [], context="rewrite_agent")
+    stt = utils.safe_get(state, "stt", {}, context="rewrite_agent")
+    stt_segments = utils.safe_get(stt, "segments", [], context="rewrite_agent")
     raw = stt_segments[-1]["raw"] if stt_segments else "없음"
     if not raw or not str(raw).strip():
         raw = "없음"
@@ -202,10 +155,10 @@ async def rewrite_agent(state: InterviewState) -> InterviewState:
         rewritten = "없음"
     item = {"raw": raw, "rewritten": rewritten}
 
-    prev = safe_get(state, "rewrite", {}, context="rewrite_agent")
-    prev_retry = safe_get(prev, "retry_count", 0, context="rewrite_agent")
-    prev_force = safe_get(prev, "force_ok", False, context="rewrite_agent")
-    prev_final = safe_get(prev, "final", [], context="rewrite_agent")
+    prev = utils.safe_get(state, "rewrite", {}, context="rewrite_agent")
+    prev_retry = utils.safe_get(prev, "retry_count", 0, context="rewrite_agent")
+    prev_force = utils.safe_get(prev, "force_ok", False, context="rewrite_agent")
+    prev_final = utils.safe_get(prev, "final", [], context="rewrite_agent")
 
     # retry_count가 3 이상이면 더 이상 증가시키지 않음
     if prev_retry >= 3:
@@ -280,16 +233,13 @@ async def rewrite_judge_agent(state: InterviewState) -> InterviewState:
         - 중복 답변 필터링 로직 포함
     """
     print("[LangGraph] 🧪 rewrite_judge_agent 진입")
-    rewrite = safe_get(state, "rewrite", {}, context="rewrite_judge_agent")
-    items   = safe_get(rewrite, "items", [])
-    force   = safe_get(rewrite, "force_ok", False, context="rewrite_judge_agent")
+    rewrite = utils.safe_get(state, "rewrite", {}, context="rewrite_judge_agent")
+    items   = utils.safe_get(rewrite, "items", [])
+    force   = utils.safe_get(rewrite, "force_ok", False, context="rewrite_judge_agent")
 
     if not items:
-        state.setdefault("decision_log", []).append({
-            "step":   "rewrite_judge_agent",
-            "result": "error",
-            "time":   datetime.now(KST).isoformat(),
-            "details":{"error":"No rewrite items found"}
+        utils.add_decision_log(state, "rewrite_judge_agent", "error", {
+            "error": "No rewrite items found"
         })
         return state
 
@@ -297,39 +247,15 @@ async def rewrite_judge_agent(state: InterviewState) -> InterviewState:
         if "ok" in item:
             continue
 
-        prompt = JUDGE_PROMPT.format(raw=item["raw"], rewritten=item["rewritten"])
-        print(f"[DEBUG] 🔍 Rewrite 판정 프롬프트:")
-        print(f"원본: {item['raw'][:100]}...")
-        print(f"리라이팅: {item['rewritten'][:100]}...")
-        
         try:
-            start = datetime.now(KST).timestamp()
-            resp  = openai.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role":"user","content":prompt}],
-                temperature=0, max_tokens=512
-            )
-            elapsed = datetime.now(KST).timestamp() - start
+            # 체이닝 사용
+            result = await chains.rewrite_judge_chain.ainvoke({
+                "raw": item["raw"],
+                "rewritten": item["rewritten"]
+            })
             
-            # LLM 응답 로그
-            llm_response = resp.choices[0].message.content.strip()
-            print(f"[DEBUG] 🤖 LLM 응답: {llm_response}")
-            
-            # 마크다운 코드 블록 제거
-            if llm_response.startswith("```json"):
-                llm_response = llm_response[7:]  # "```json" 제거
-            if llm_response.startswith("```"):
-                llm_response = llm_response[3:]   # "```" 제거
-            if llm_response.endswith("```"):
-                llm_response = llm_response[:-3]  # 끝의 "```" 제거
-            
-            llm_response = llm_response.strip()
-            print(f"[DEBUG] 🔧 정리된 JSON: {llm_response}")
-            
-            result  = json.loads(llm_response)
-
-            item["ok"]          = result.get("ok", False)
-            item["judge_notes"] = result.get("judge_notes", [])
+            item["ok"] = result.ok
+            item["judge_notes"] = result.judge_notes
 
             print(f"[DEBUG] 📊 판정 결과: ok={item['ok']}, notes={item['judge_notes']}")
 
@@ -348,9 +274,7 @@ async def rewrite_judge_agent(state: InterviewState) -> InterviewState:
                         "rewritten": rewritten,
                         "timestamp": datetime.now(KST).isoformat()
                     })
-                    # print(f"[DEBUG] ✅ final에 추가됨: {item['rewritten'][:50]}...")
                 else:
-                    # print(f"[DEBUG] ⚠️ 중복된 답변(final)에 추가하지 않음: {item['rewritten'][:50]}...")
                     pass
 
             # 강제 통과 플래그가 설정되어 있으면 final에 추가
@@ -363,31 +287,22 @@ async def rewrite_judge_agent(state: InterviewState) -> InterviewState:
                         "rewritten": rewritten,
                         "timestamp": datetime.now(KST).isoformat()
                     })
-                    # print(f"[DEBUG] ✅ 강제 통과로 final에 추가됨: {item['rewritten'][:50]}...")
                 else:
-                    # print(f"[DEBUG] ⚠️ 강제 통과 중복(final)에 추가하지 않음: {item['rewritten'][:50]}...")
                     pass
                 item["ok"] = True
                 item["judge_notes"].append("강제 통과 (재시도 3회 초과)")
 
-            state.setdefault("decision_log", []).append({
-                "step":   "rewrite_judge_agent",
-                "result": f"ok={item['ok']}",
-                "time":   datetime.now(KST).isoformat(),
-                "details":{"notes":item["judge_notes"],"elapsed_sec":round(elapsed,2)}
+            utils.add_decision_log(state, "rewrite_judge_agent", f"ok={item['ok']}", {
+                "notes": item["judge_notes"]
             })
             print(f"[LangGraph] ✅ 판정 결과: ok={item['ok']}")
 
         except Exception as e:
-            print(f"[DEBUG] ❌ JSON 파싱 오류: {e}")
-            print(f"[DEBUG] 🔍 원본 LLM 응답: {llm_response if 'llm_response' in locals() else 'N/A'}")
-            item["ok"]          = False
+            print(f"[ERROR] rewrite_judge_agent 체인 실행 오류: {e}")
+            item["ok"] = False
             item["judge_notes"] = [f"judge error: {e}"]
-            state.setdefault("decision_log", []).append({
-                "step":"rewrite_judge_agent",
-                "result":"error",
-                "time":datetime.now(KST).isoformat(),
-                "details":{"error":str(e)}
+            utils.add_decision_log(state, "rewrite_judge_agent", "error", {
+                "error": str(e)
             })
 
     # 마지막 항목이 ok=True면 완료 표시
@@ -428,7 +343,7 @@ async def nonverbal_evaluation_agent(state: InterviewState) -> InterviewState:
     
     ts = datetime.now(KST).isoformat()
     try:
-        counts = safe_get(state, "nonverbal_counts", {}, context="nonverbal_evaluation_agent")
+        counts = utils.safe_get(state, "nonverbal_counts", {}, context="nonverbal_evaluation_agent")
         print(f"[DEBUG] nonverbal_counts: {counts}")
         # 구조 체크
         if not counts or not isinstance(counts, dict):
@@ -455,20 +370,15 @@ async def nonverbal_evaluation_agent(state: InterviewState) -> InterviewState:
         pts = int(round(score * 15))
         if pts == 0:
             print("[WARNING] 비언어적 평가 점수가 0입니다. 프론트/데이터 전달/LLM 프롬프트를 확인하세요.")
-        evaluation = safe_get(state, "evaluation", {}, context="nonverbal_evaluation_agent")
-        results = safe_get(evaluation, "results", {}, context="nonverbal_evaluation_agent")
+        evaluation = utils.safe_get(state, "evaluation", {}, context="nonverbal_evaluation_agent")
+        results = utils.safe_get(evaluation, "results", {}, context="nonverbal_evaluation_agent")
         results["비언어적"] = {"score": pts, "reason": analysis or feedback or "평가 사유없음"}
         state.setdefault("evaluation", {}).setdefault("results", {})["비언어적"] = {
             "score": pts,
             "reason": analysis or feedback or "평가 사유없음"
         }
-        state.setdefault("decision_log", []).append({
-            "step": "nonverbal_evaluation",
-            "result": "success",
-            "time": ts,
-            "details": {
-                "score": pts
-            }
+        utils.add_decision_log(state, "nonverbal_evaluation", "success", {
+            "score": pts
         })
         print(f"[DEBUG] nonverbal_evaluation_agent - state['evaluation']['results']['비언어적']: {state.get('evaluation', {}).get('results', {}).get('비언어적')}")
     except Exception as e:
@@ -503,9 +413,9 @@ def should_retry_evaluation(state: InterviewState) -> Literal["retry", "continue
         - 총 2번 실행 후 무조건 진행
         - 내용 검증은 evaluation_judge_agent에서 수행
     """
-    evaluation = safe_get(state, "evaluation", {}, context="should_retry_evaluation:evaluation")
-    retry_count = safe_get(evaluation, "retry_count", 0, context="should_retry_evaluation:retry_count")
-    is_ok = safe_get(evaluation, "ok", False, context="should_retry_evaluation:ok")
+    evaluation = utils.safe_get(state, "evaluation", {}, context="should_retry_evaluation:evaluation")
+    retry_count = utils.safe_get(evaluation, "retry_count", 0, context="should_retry_evaluation:retry_count")
+    is_ok = utils.safe_get(evaluation, "ok", False, context="should_retry_evaluation:ok")
     
     # print(f"[DEBUG] should_retry_evaluation - retry_count: {retry_count}, is_ok: {is_ok}")
     
@@ -607,12 +517,12 @@ async def evaluation_agent(state: InterviewState) -> InterviewState:
     results = await evaluate_keywords_from_full_answer(full_answer)
     results = normalize_results(results)
 
-    prev_eval = safe_get(state, "evaluation", {}, context="evaluation_agent:evaluation")
+    prev_eval = utils.safe_get(state, "evaluation", {}, context="evaluation_agent:evaluation")
     prev_results = prev_eval.get("results", {})
     # 기존 비언어적 등 결과와 새 평가 결과 병합
     merged_results = {**prev_results, **results}
-    prev_retry = safe_get(prev_eval, "retry_count", 0, context="evaluation_agent:evaluation.retry_count")
-    if "ok" in prev_eval and safe_get(prev_eval, "ok", context="evaluation_agent:evaluation.ok") is False:
+    prev_retry = utils.safe_get(prev_eval, "retry_count", 0, context="evaluation_agent:evaluation.retry_count")
+    if "ok" in prev_eval and utils.safe_get(prev_eval, "ok", context="evaluation_agent:evaluation.ok") is False:
         retry_count = prev_retry + 1
     else:
         retry_count = prev_retry
@@ -625,12 +535,8 @@ async def evaluation_agent(state: InterviewState) -> InterviewState:
         "ok": False  # 판정 전이므로 False로 초기화
     }
     state["done"] = True  # 파이프라인 전체 종료 신호 추가
-    ts = datetime.now(KST).isoformat()
-    state.setdefault("decision_log", []).append({
-        "step": "evaluation_agent",
-        "result": "done",
-        "time": ts,
-        "details": {"retry_count": retry_count}
+    utils.add_decision_log(state, "evaluation_agent", "done", {
+        "retry_count": retry_count
     })
 
     return state
@@ -659,14 +565,11 @@ async def evaluation_judge_agent(state: InterviewState) -> InterviewState:
         - 내용 검증 오류 시 기본 통과 처리
         - 모든 검증 결과를 decision_log에 기록
     """
-    evaluation = safe_get(state, "evaluation", {}, context="evaluation_judge_agent:evaluation")
-    results = safe_get(evaluation, "results", {}, context="evaluation_judge_agent:evaluation.results")
+    evaluation = utils.safe_get(state, "evaluation", {}, context="evaluation_judge_agent:evaluation")
+    results = utils.safe_get(evaluation, "results", {}, context="evaluation_judge_agent:evaluation.results")
     if not results:
-        state.setdefault("decision_log", []).append({
-            "step": "evaluation_judge_agent",
-            "result": "error",
-            "time": datetime.now(KST).isoformat(),
-            "details": {"error": "No evaluation results found"}
+        utils.add_decision_log(state, "evaluation_judge_agent", "error", {
+            "error": "No evaluation results found"
         })
         print("[judge] No evaluation results found, will stop.")
         state["evaluation"]["ok"] = True  # 더 이상 retry/continue 안 하도록 True로 설정
@@ -721,28 +624,7 @@ async def evaluation_judge_agent(state: InterviewState) -> InterviewState:
 
     # === 내용 검증 LLM 호출 추가 ===
     try:
-        CONTENT_VALIDATION_PROMPT = """
-시스템: 당신은 AI 면접 평가 결과의 검증 전문가입니다.
-
-아래는 지원자의 답변, 그리고 그 답변에 대한 키워드별 평가 결과입니다.
-
-[지원자 답변]
-{answer}
-
-[평가 결과]
-{evaluation}
-
-[평가 기준]
-{criteria}
-
-평가 결과를 간단히 검증하고 아래 형식의 JSON으로만 답변하세요.
-
-{{
-  "ok": true,
-  "judge_notes": ["평가 완료"]
-}}
-"""
-        final_items = safe_get(state, "rewrite", {}).get("final", [])
+        final_items = utils.safe_get(state, "rewrite", {}).get("final", [])
         if not final_items:
             # final_items가 비어있으면 raw 텍스트 사용
             stt_segments = state.get("stt", {}).get("segments", [])
@@ -760,136 +642,37 @@ async def evaluation_judge_agent(state: InterviewState) -> InterviewState:
             **DOMAIN_EVAL_CRITERIA_WITH_ALL_SCORES
         }, ensure_ascii=False)
 
-        prompt = CONTENT_VALIDATION_PROMPT.format(
-            answer=answer,
-            evaluation=evaluation,
-            criteria=criteria
-        )
-
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-            max_tokens=1024
-        )
+        # 체이닝 사용
+        result = await chains.content_validation_chain.ainvoke({
+            "answer": answer,
+            "evaluation": evaluation,
+            "criteria": criteria
+        })
         
-        llm_response = response.choices[0].message.content.strip()
-        # print(f"[DEBUG] 🤖 내용 검증 LLM 응답: {llm_response}")
-        
-        # 마크다운 코드 블록 제거
-        if llm_response.startswith("```json"):
-            llm_response = llm_response[7:]  # "```json" 제거
-        if llm_response.startswith("```"):
-            llm_response = llm_response[3:]   # "```" 제거
-        if llm_response.endswith("```"):
-            llm_response = llm_response[:-3]  # 끝의 "```" 제거
-        
-        llm_response = llm_response.strip()
-        # print(f"[DEBUG] 🔧 정리된 내용 검증 JSON: {llm_response}")
-        
-        if not llm_response:
-            raise ValueError("LLM 응답이 비어있습니다")
-            
-        result = json.loads(llm_response)
-        state["evaluation"]["content_judge"] = result
-        print(f"[LangGraph] ✅ 내용 검증 결과: ok={result.get('ok')}, notes={result.get('judge_notes')}")
+        state["evaluation"]["content_judge"] = {
+            "ok": result.ok,
+            "judge_notes": result.judge_notes
+        }
+        print(f"[LangGraph] ✅ 내용 검증 결과: ok={result.ok}, notes={result.judge_notes}")
     except Exception as e:
-        print(f"[DEBUG] ❌ 내용 검증 오류: {e}")
-        # print(f"[DEBUG] 🔍 LLM 응답: {llm_response if 'llm_response' in locals() else 'N/A'}")
+        print(f"[ERROR] content_validation_chain 실행 오류: {e}")
         state["evaluation"]["content_judge"] = {
             "ok": True,  # 오류 시 기본적으로 통과
             "judge_notes": [f"content judge error: {e}"]
         }
         print(f"[LangGraph] ❌ 내용 검증 오류: {e}")
 
-    ts = datetime.now(KST).isoformat()
-    state.setdefault("decision_log", []).append({
-        "step": "evaluation_judge_agent",
-        "result": f"ok={is_valid}",
-        "time": ts,
-        "details": {
-            "total_score": total,
-            "max_score": max_score,
-            "notes": judge_notes
-        }
+    utils.add_decision_log(state, "evaluation_judge_agent", f"ok={is_valid}", {
+        "total_score": total,
+        "max_score": max_score,
+        "notes": judge_notes
     })
     
     return state
 
-def calculate_area_scores(evaluation_results, nonverbal_score):
-    """
-    영역별 점수 계산 및 100점 만점 환산 함수
-    
-    Args:
-        evaluation_results (dict): 평가 결과 딕셔너리
-        nonverbal_score (int): 비언어적 점수 (15점 만점)
-        
-    Returns:
-        tuple: (weights, personality_score_scaled, job_domain_score_scaled, nonverbal_score_scaled)
-        
-    계산 방식:
-    - 인성적 요소 (90점 만점): SUPEX, VWBE, Passionate, Proactive, Professional, People
-    - 직무·도메인 (30점 만점): "기술/직무", "도메인 전문성"  
-    - 비언어적 요소 (15점 만점): 표정 분석 점수
-    
-    환산 비율:
-    - 인성적 요소: 45% (90점 → 45점)
-    - 직무·도메인: 45% (30점 → 45점)
-    - 비언어적 요소: 10% (15점 → 10점)
-    """
-    personality_keywords = ["SUPEX", "VWBE", "Passionate", "Proactive", "Professional", "People"]
-    job_domain_keywords = ["기술/직무", "도메인 전문성"]
-    
-    # 언어적 요소 총점
-    personality_score = 0
-    for keyword in personality_keywords:
-        for criterion in evaluation_results.get(keyword, {}).values():
-            personality_score += criterion.get("score", 0)
-    # print(f"[DEBUG] 인성적 요소 총점: {personality_score} (max 90)")
-    
-    # 직무·도메인 총점
-    job_domain_score = 0
-    for keyword in job_domain_keywords:
-        for criterion in evaluation_results.get(keyword, {}).values():
-            job_domain_score += criterion.get("score", 0)
-    # print(f"[DEBUG] 직무·도메인 총점: {job_domain_score} (max 30)")
-    
-    # 비언어적 요소
-    # print(f"[DEBUG] 비언어적 요소 원점수: {nonverbal_score} (max 15)")
-    max_personality = 90
-    max_job_domain = 30
-    max_nonverbal = 15
-    
-    # 100점 만점 환산 점수 계산
-    personality_score_scaled = round((personality_score / max_personality) * 45, 1) if max_personality else 0
-    job_domain_score_scaled = round((job_domain_score / max_job_domain) * 45, 1) if max_job_domain else 0
-    nonverbal_score_scaled = round((nonverbal_score / max_nonverbal) * 10, 1) if max_nonverbal else 0
-    
-    # 비중 (고정값)
-    weights = {
-        "인성적 요소": 45.0,
-        "직무·도메인": 45.0,
-        "비언어적 요소": 10.0
-    }
-    
-    # print(f"[DEBUG] 환산 점수: 인성적={personality_score_scaled}, 직무·도메인={job_domain_score_scaled}, 비언어적={nonverbal_score_scaled}")
-    return weights, personality_score_scaled, job_domain_score_scaled, nonverbal_score_scaled
+# calculate_area_scores 함수는 utils 클래스로 이동됨
 
-EVAL_REASON_SUMMARY_PROMPT = """
-아래는 지원자의 전체 답변과 각 평가 키워드별 평가 사유(reason)입니다.
-
-[지원자 답변]
-{answer}
-
-[평가 사유]
-{all_reasons}
-
-이 두 정보를 참고하여, 지원자가 이렇게 점수를 얻게 된 이유를 8줄 이내로 자연스럽게 요약해 주세요.
-- 평가 근거와 지원자의 핵심 답변 내용이 모두 포함되도록 하세요.
-- 각 줄은 간결하고 핵심적으로 작성해 주세요.
-- 중복되는 내용은 합치고, 중요한 특징/강점/보완점이 드러나도록 해 주세요.
-- 반드시 8줄 이내로만 작성하세요.
-"""
+# EVAL_REASON_SUMMARY_PROMPT는 체이닝으로 대체됨
 
 async def score_summary_agent(state):
     """
@@ -918,8 +701,8 @@ async def score_summary_agent(state):
         - 평가 소요시간 추적 및 성능 모니터링
         - 모든 결과를 state["summary"]에 저장
     """
-    evaluation = safe_get(state, "evaluation", {}, context="score_summary_agent:evaluation")
-    evaluation_results = safe_get(evaluation, "results", {}, context="score_summary_agent:evaluation.results")
+    evaluation = utils.safe_get(state, "evaluation", {}, context="score_summary_agent:evaluation")
+    evaluation_results = utils.safe_get(evaluation, "results", {}, context="score_summary_agent:evaluation.results")
     # print(f"[DEBUG] 평가 결과(evaluation_results): {json.dumps(evaluation_results, ensure_ascii=False, indent=2)}")
     nonverbal = evaluation_results.get("비언어적", {})
     nonverbal_score = nonverbal.get("score", 0)
@@ -927,7 +710,7 @@ async def score_summary_agent(state):
     # print(f"[DEBUG] 비언어적 평가: score={nonverbal_score}, reason={nonverbal_reason}")
 
     # 100점 만점 환산 점수 계산
-    weights, personality_score_scaled, job_domain_score_scaled, nonverbal_score_scaled = calculate_area_scores(evaluation_results, nonverbal_score)
+    weights, personality_score_scaled, job_domain_score_scaled, nonverbal_score_scaled = utils.calculate_area_scores(evaluation_results, nonverbal_score)
     verbal_score = personality_score_scaled + job_domain_score_scaled
     # print(f"[DEBUG] verbal_score(인성+직무/도메인): {verbal_score}")
 
@@ -947,30 +730,30 @@ async def score_summary_agent(state):
     # print(f"[DEBUG] all_reasons(전체 평가 사유):\n{all_reasons}")
 
     # 지원자 답변 추출
-    rewrite = safe_get(state, "rewrite", {}, context="score_summary_agent:rewrite")
-    final_items = safe_get(rewrite, "final", [], context="score_summary_agent:rewrite.final")
+    rewrite = utils.safe_get(state, "rewrite", {}, context="score_summary_agent:rewrite")
+    final_items = utils.safe_get(rewrite, "final", [], context="score_summary_agent:rewrite.final")
     if final_items:
         answer = "\n".join(item["rewritten"] for item in final_items)
     else:
-        stt = safe_get(state, "stt", {}, context="score_summary_agent:stt")
-        stt_segments = safe_get(stt, "segments", [], context="score_summary_agent:stt.segments")
+        stt = utils.safe_get(state, "stt", {}, context="score_summary_agent:stt")
+        stt_segments = utils.safe_get(stt, "segments", [], context="score_summary_agent:stt.segments")
         if stt_segments:
             answer = "\n".join(seg.get("raw", "답변 내용이 없습니다.") for seg in stt_segments)
         else:
             answer = "답변 내용이 없습니다."
     # print(f"[DEBUG] 지원자 답변(answer):\n{answer}")
 
-    # LLM 프롬프트로 종합 요약 요청
-    prompt = EVAL_REASON_SUMMARY_PROMPT.format(answer=answer, all_reasons=all_reasons)
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        messages=[{
-            "role": "user",
-            "content": prompt
-        }]
-    )
-    verbal_reason = response.choices[0].message.content.strip().splitlines()[:8]
-    # print(f"[DEBUG] summary_text(LLM 요약): {verbal_reason}")
+    # 체이닝 사용하여 요약 생성
+    try:
+        summary_response = await chains.score_summary_chain.ainvoke({
+            "answer": answer,
+            "all_reasons": all_reasons
+        })
+        verbal_reason = summary_response.strip().splitlines()[:8]
+        # print(f"[DEBUG] summary_text(LLM 요약): {verbal_reason}")
+    except Exception as e:
+        print(f"[ERROR] score_summary_chain 실행 오류: {e}")
+        verbal_reason = ["요약 생성 중 오류가 발생했습니다."]
 
     # 각 키워드별 총점 계산
     keyword_scores = {}
@@ -1008,15 +791,10 @@ async def score_summary_agent(state):
         print(f"[⏱️] 평가 소요시간: {total_elapsed:.2f}초 (평가 시작 → 완료)")
         
         # decision_log에도 기록
-        state.setdefault("decision_log", []).append({
-            "step": "evaluation_complete",
-            "result": "success",
-            "time": datetime.now(KST).isoformat(),
-            "details": {
-                "evaluation_elapsed_seconds": round(total_elapsed, 2),
-                "start_time": datetime.fromtimestamp(start_time, KST).isoformat(),
-                "end_time": datetime.now(KST).isoformat()
-            }
+        utils.add_decision_log(state, "evaluation_complete", "success", {
+            "evaluation_elapsed_seconds": round(total_elapsed, 2),
+            "start_time": datetime.fromtimestamp(start_time, KST).isoformat(),
+            "end_time": datetime.now(KST).isoformat()
         })
         
         # summary에도 소요시간 정보 추가
