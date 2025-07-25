@@ -295,6 +295,11 @@ async def evaluation_agent(state: InterviewState) -> InterviewState:
     rewrite = utils.safe_get(state, "rewrite", {}, context="evaluation_agent:rewrite")
     final_items = utils.safe_get(rewrite, "final", [], context="evaluation_agent:rewrite.final")
     
+    # === finals 디버깅 출력 추가 ===
+    print(f"[DEBUG] 🔍 finals 항목 수: {len(final_items)}")
+    for i, item in enumerate(final_items):
+        print(f"[DEBUG] 🔍 final[{i}]: raw='{item.get('raw', 'N/A')[:50]}...', rewritten='{item.get('rewritten', 'N/A')[:50]}...'")
+    
     if not final_items:
         print("[WARNING] final_items가 비어있음. 평가를 건너뜀.")
         utils.add_decision_log(state, "evaluation_agent", "error", {
