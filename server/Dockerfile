@@ -2,11 +2,12 @@
 FROM --platform=linux/amd64 gradle:8.7-jdk17 AS build
 WORKDIR /app
 
-# Gradle Wrapper 및 프로젝트 파일 복사
+# 소스 코드 복사
 COPY . .
 
-# Gradle 빌드 (테스트 생략)
-RUN ./gradlew build -x test
+# gradlew에 실행 권한 부여 및 빌드
+RUN chmod +x gradlew \
+ && ./gradlew build -x test
 
 # 실행 이미지 생성
 FROM --platform=linux/amd64 openjdk:17-slim
