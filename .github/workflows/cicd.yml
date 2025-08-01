@@ -7,8 +7,9 @@ on:
     paths:
       - 'ai/**'
       - 'client/**'
-      - 'server/**'     # server 디렉토리 변경 시에도 트리거
-
+      - 'server/**'
+  workflow_dispatch:  ##
+  
 jobs:
   build-and-deploy-ai:
     name: Build & Deploy AI
@@ -89,7 +90,7 @@ jobs:
   build-and-deploy-server:
     name: Build & Deploy Server
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'   # 서버는 main 브랜치에서만
+    if: github.ref == 'refs/heads/main'
     environment: deploy
     steps:
       - name: Checkout code
