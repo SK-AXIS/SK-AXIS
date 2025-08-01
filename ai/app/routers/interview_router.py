@@ -113,7 +113,15 @@ async def end_interview(req: EndInterviewRequest):
 
     try:
         # 각 면접자별로 순차 처리
+        print(f"[DEBUG] req.data keys: {list(req.data.keys())}")
         for interviewee_id_str, nv in req.data.items():
+            print(f"[DEBUG] Processing key: '{interviewee_id_str}', type: {type(interviewee_id_str)}")
+            
+            # 키가 숫자인지 확인
+            if not interviewee_id_str.isdigit():
+                print(f"[ERROR] Invalid interviewee_id key: '{interviewee_id_str}' - not a valid number")
+                continue
+                
             interviewee_id = int(interviewee_id_str)
             print(f"[DEBUG] Processing interviewee_id: {interviewee_id}")
 

@@ -1,21 +1,53 @@
 <!-- CandidateManage.vue -->
 <template>
   <!-- 지원자 관리 뷰 -->
-  <div class="p-8 overflow-visible min-h-0 h-auto">
-    <!-- 지원자 관리 헤더 -->
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">지원자 관리</h2>
-      <div class="text-sm text-gray-600">
-        총 {{ candidateList.length }}명 | 필터 결과: {{ filteredCandidates.length }}명
+  <div class="p-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <!-- 지원자 관리 헤더 개선 -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-users text-white"></i>
+          </div>
+          지원자 관리
+        </h1>
+        <p class="text-gray-600 mt-2">면접 지원자들을 효율적으로 관리하세요</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+        <div class="grid grid-cols-2 gap-6 text-center">
+          <div>
+            <p class="text-2xl font-bold text-blue-600">{{ candidateList.length }}</p>
+            <p class="text-sm text-gray-600">총 지원자</p>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-green-600">{{ filteredCandidates.length }}</p>
+            <p class="text-sm text-gray-600">필터 결과</p>
+          </div>
+        </div>
       </div>
     </div>
     
-    <!-- 필터 및 검색 - 개선된 버전 -->
-    <div class="bg-white rounded-lg p-6 mb-6 border border-gray-200">
-      <div class="grid grid-cols-5 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
-          <select v-model="filters.status" @change="onFilterChange" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <!-- 필터 및 검색 개선 -->
+    <div class="bg-white rounded-2xl p-8 mb-8 border border-gray-200 shadow-lg">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-filter text-blue-500"></i>
+          필터 & 검색
+        </h2>
+        <button 
+          v-if="hasActiveFilters"
+          @click="resetFilters" 
+          class="px-4 py-2 text-sm text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all duration-200 flex items-center gap-2">
+          <i class="fas fa-times"></i>
+          필터 초기화
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-4 gap-6 mb-6">
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">상태</label>
+          <select v-model="filters.status" @change="onFilterChange" 
+                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100">
             <option value="all">전체</option>
             <option value="SCHEDULED">예정</option>
             <option value="IN_PROGRESS">진행중</option>
@@ -25,179 +57,223 @@
           </select>
         </div>
         
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">면접 일정</label>
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">면접 일정</label>
           <input 
             type="date" 
             v-model="filters.interviewDate" 
             @change="onFilterChange"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100">
         </div>
         
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">면접실</label>
-          <select v-model="filters.room" @change="onFilterChange" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">면접실</label>
+          <select v-model="filters.room" @change="onFilterChange" 
+                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100">
             <option value="all">전체</option>
             <option v-for="room in uniqueRooms" :key="room" :value="room">{{ room }}</option>
           </select>
         </div>
         
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">검색</label>
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-700">검색</label>
           <div class="relative">
             <input 
               type="text" 
               v-model="filters.search" 
               @input="onFilterChange"
               placeholder="이름, 직무, 면접관 검색" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+              class="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100">
+            <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
           </div>
         </div>
       </div>
       
-      <!-- 필터 상태 표시 및 초기화 버튼 -->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-sm text-gray-600">활성 필터:</span>
-          <span v-if="filters.status !== 'all'" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-            상태: {{ getStatusText(filters.status) }}
-          </span>
-          <span v-if="filters.interviewDate" class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-            날짜: {{ filters.interviewDate }}
-          </span>
-          <span v-if="filters.room !== 'all'" class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-            면접실: {{ filters.room }}
-          </span>
-          <span v-if="filters.search" class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-            검색: "{{ filters.search }}"
-          </span>
-          <span v-if="!hasActiveFilters" class="text-xs text-gray-400">없음</span>
-        </div>
-        
-        <button 
-          v-if="hasActiveFilters"
-          @click="resetFilters" 
-          class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50">
-          <i class="fas fa-times mr-1"></i>필터 초기화
-        </button>
+      <!-- 활성 필터 표시 개선 -->
+      <div class="flex items-center gap-3 flex-wrap" v-if="hasActiveFilters">
+        <span class="text-sm font-medium text-gray-600">활성 필터:</span>
+        <span v-if="filters.status !== 'all'" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full border border-blue-200">
+          <i class="fas fa-tag"></i>
+          상태: {{ getStatusText(filters.status) }}
+        </span>
+        <span v-if="filters.interviewDate" class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full border border-green-200">
+          <i class="fas fa-calendar"></i>
+          날짜: {{ filters.interviewDate }}
+        </span>
+        <span v-if="filters.room !== 'all'" class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full border border-purple-200">
+          <i class="fas fa-door-open"></i>
+          면접실: {{ filters.room }}
+        </span>
+        <span v-if="filters.search" class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full border border-gray-200">
+          <i class="fas fa-search"></i>
+          검색: "{{ filters.search }}"
+        </span>
+      </div>
+      <div v-else class="text-sm text-gray-500 flex items-center gap-2">
+        <i class="fas fa-info-circle"></i>
+        현재 활성화된 필터가 없습니다
       </div>
     </div>
     
-    <!-- 지원자 목록 테이블 -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-        <h2 class="text-lg font-medium text-gray-700">
-          지원자 목록 
-          <span class="text-sm font-normal text-gray-500">
-            ({{ filteredCandidates.length }}명 / 전체 {{ candidateList.length }}명)
-          </span>
-        </h2>
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2">
-            <label for="itemsPerPage" class="text-sm text-gray-500">페이지당</label>
-            <select id="itemsPerPage" v-model.number="itemsPerPage" class="px-2 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option :value="8">8</option>
-              <option :value="10">10</option>
-              <option :value="15">15</option>
-              <option :value="20">20</option>
-            </select>
-            <span class="text-sm text-gray-500">개 보기</span>
+    <!-- 지원자 목록 테이블 개선 -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+      <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-table text-blue-500"></i>
+              지원자 목록
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+              {{ filteredCandidates.length }}명 / 전체 {{ candidateList.length }}명
+            </p>
           </div>
-          <button @click="openAddModal" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
-            <i class="fas fa-plus"></i>
-            지원자 추가
-          </button>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 bg-white rounded-xl px-4 py-2 border border-gray-200">
+              <label for="itemsPerPage" class="text-sm font-medium text-gray-700">페이지당</label>
+              <select id="itemsPerPage" v-model.number="itemsPerPage" 
+                      class="px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200">
+                <option :value="8">8</option>
+                <option :value="10">10</option>
+                <option :value="15">15</option>
+                <option :value="20">20</option>
+              </select>
+              <span class="text-sm text-gray-700">개 보기</span>
+            </div>
+            <button @click="openAddModal" 
+                    class="group px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 flex items-center gap-2">
+              <i class="fas fa-plus group-hover:scale-110 transition-transform"></i>
+              <span class="font-medium">지원자 추가</span>
+            </button>
+          </div>
         </div>
       </div>
       
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+          <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
             <tr>
-              <th @click="sortBy('interviewDate')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                날짜 <i class="fas fa-sort ml-1"></i>
+              <th @click="sortBy('interviewDate')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  날짜 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th @click="sortBy('interviewTime')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                시간 <i class="fas fa-sort ml-1"></i>
+              <th @click="sortBy('interviewTime')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  시간 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th @click="sortBy('room')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                면접실 <i class="fas fa-sort ml-1"></i>
+              <th @click="sortBy('room')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  면접실 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th @click="sortBy('name')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                지원자 <i class="fas fa-sort ml-1"></i>
+              <th @click="sortBy('name')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  지원자 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">면접관</th>
-              <th @click="sortBy('status')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                상태 <i class="fas fa-sort ml-1"></i>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">면접관</th>
+              <th @click="sortBy('status')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  상태 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th @click="sortBy('score')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                점수 <i class="fas fa-sort ml-1"></i>
+              <th @click="sortBy('score')" 
+                  class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors duration-200 group">
+                <div class="flex items-center gap-2">
+                  점수 
+                  <i class="fas fa-sort text-gray-400 group-hover:text-gray-600 transition-colors"></i>
+                </div>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">관리</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="bg-white divide-y divide-gray-100">
             <tr v-if="pagedCandidates.length === 0">
-              <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+              <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                 <div class="flex flex-col items-center">
-                  <i class="fas fa-search text-3xl text-gray-300 mb-2"></i>
-                  <span>조건에 맞는 지원자가 없습니다.</span>
-                  <button @click="resetFilters" class="mt-2 text-blue-600 hover:text-blue-800 text-sm">
+                  <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-3xl text-gray-300"></i>
+                  </div>
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">데이터가 없습니다</h3>
+                  <span class="text-gray-500 mb-4">조건에 맞는 지원자가 없습니다.</span>
+                  <button @click="resetFilters" 
+                          class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors text-sm">
                     필터 초기화
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-for="candidate in pagedCandidates" :key="candidate.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ formatDate(candidate.interviewDate) }}
+            <tr v-for="candidate in pagedCandidates" :key="candidate.id" 
+                class="hover:bg-blue-50/50 transition-colors duration-200 group">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span class="text-sm font-medium">{{ formatDate(candidate.interviewDate) }}</span>
+                </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">{{ candidate.interviewTime || '-' }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-md text-xs">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">{{ candidate.interviewTime || '-' }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm font-medium text-purple-600 bg-purple-100 px-3 py-1 rounded-lg border border-purple-200">
                   {{ candidate.room || '-' }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div>
-                  <div class="text-sm font-medium text-gray-900">{{ candidate.name }}</div>
-                  <div v-if="candidate.position && candidate.position.trim()" class="text-sm text-gray-500">{{ candidate.position }}</div>
+                  <div class="text-sm font-semibold text-gray-900">{{ candidate.name }}</div>
+                  <div v-if="candidate.position && candidate.position.trim()" class="text-xs text-gray-500 mt-1">{{ candidate.position }}</div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <div class="max-w-32 truncate" :title="candidate.interviewers ? candidate.interviewers.join(', ') : '-'">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="max-w-32 truncate text-sm text-gray-600" :title="candidate.interviewers ? candidate.interviewers.join(', ') : '-'">
                   {{ candidate.interviewers ? candidate.interviewers.join(', ') : '-' }}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="{
-                  'px-2 py-1 text-xs font-medium rounded-full': true,
-                  'bg-green-100 text-green-800': candidate.status === 'COMPLETED',
-                  'bg-yellow-100 text-yellow-800': candidate.status === 'SCHEDULED' || candidate.status === 'UNDECIDED',
-                  'bg-blue-100 text-blue-800': candidate.status === 'IN_PROGRESS',
-                  'bg-gray-100 text-gray-800': candidate.status === 'CANCELLED'
+                  'px-3 py-1 text-xs font-medium rounded-full border': true,
+                  'bg-green-50 text-green-700 border-green-200': candidate.status === 'COMPLETED',
+                  'bg-yellow-50 text-yellow-700 border-yellow-200': candidate.status === 'SCHEDULED' || candidate.status === 'UNDECIDED',
+                  'bg-blue-50 text-blue-700 border-blue-200': candidate.status === 'IN_PROGRESS',
+                  'bg-gray-50 text-gray-700 border-gray-200': candidate.status === 'CANCELLED'
                 }">{{ getStatusText(candidate.status) }}</span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <span v-if="candidate.score !== null" :class="{
-                  'font-medium': true,
-                  'text-green-600': candidate.score >= 90,
-                  'text-blue-600': candidate.score >= 80 && candidate.score < 90,
-                  'text-yellow-600': candidate.score >= 70 && candidate.score < 80,
-                  'text-red-600': candidate.score < 70
+                  'font-bold text-sm px-3 py-1 rounded-lg': true,
+                  'text-green-700 bg-green-100': candidate.score >= 90,
+                  'text-blue-700 bg-blue-100': candidate.score >= 80 && candidate.score < 90,
+                  'text-yellow-700 bg-yellow-100': candidate.score >= 70 && candidate.score < 80,
+                  'text-red-700 bg-red-100': candidate.score < 70
                 }">
                   {{ candidate.score }}점
                 </span>
-                <span v-else class="text-gray-400">-</span>
+                <span v-else class="text-gray-400 text-sm">-</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
-                  <button class="text-blue-600 hover:text-blue-800 p-1" @click="openEditModal(candidate)" title="수정">
-                    <i class="fas fa-edit"></i>
+                  <button class="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 transition-all duration-200 flex items-center justify-center group-hover:scale-110" 
+                          @click="openEditModal(candidate)" title="수정">
+                    <i class="fas fa-edit text-sm"></i>
                   </button>
-                  <button class="text-red-600 hover:text-red-800 p-1" @click="openDeleteModal(candidate)" title="삭제">
-                    <i class="fas fa-trash-alt"></i>
+                  <button class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 transition-all duration-200 flex items-center justify-center group-hover:scale-110" 
+                          @click="openDeleteModal(candidate)" title="삭제">
+                    <i class="fas fa-trash-alt text-sm"></i>
                   </button>
                 </div>
               </td>
@@ -207,113 +283,169 @@
       </div>
     </div>
     
-    <!-- 페이지네이션 -->
-    <div class="relative px-4 pb-4 mt-6" v-if="totalPages > 1">
-      <div class="flex justify-center items-center gap-2 w-full">
-        <button @click="goToPage(1)" :disabled="currentPage === 1" class="px-3 py-1 rounded-full border shadow-sm transition-colors duration-150" :class="currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-blue-100'">
-          <i class="fas fa-angle-double-left"></i>
-        </button>
-        <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 rounded-full border shadow-sm transition-colors duration-150" :class="currentPage === 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-blue-100'">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <span v-for="page in visiblePages" :key="page">
-          <button @click="goToPage(page)" :class="page === currentPage ? 'bg-red-500 text-white' : 'bg-white text-gray-700 hover:bg-red-100'" class="px-3 py-1 rounded-full border mx-1 shadow-sm transition-colors duration-150">{{ page }}</button>
-        </span>
-        <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages || totalPages === 0" class="px-3 py-1 rounded-full border shadow-sm transition-colors duration-150" :class="currentPage === totalPages || totalPages === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-blue-100'">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages || totalPages === 0" class="px-3 py-1 rounded-full border shadow-sm transition-colors duration-150" :class="currentPage === totalPages || totalPages === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-blue-100'">
-          <i class="fas fa-angle-double-right"></i>
+    <!-- 페이지네이션 개선 -->
+    <div class="flex justify-center items-center gap-2 mt-8" v-if="totalPages > 1">
+      <button @click="goToPage(1)" :disabled="currentPage === 1" 
+              class="w-10 h-10 rounded-xl border transition-all duration-200 flex items-center justify-center" 
+              :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-300 hover:border-blue-300 shadow-sm hover:shadow-md'">
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" 
+              class="w-10 h-10 rounded-xl border transition-all duration-200 flex items-center justify-center" 
+              :class="currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-300 hover:border-blue-300 shadow-sm hover:shadow-md'">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="flex items-center gap-1">
+        <button v-for="page in visiblePages" :key="page" @click="goToPage(page)" 
+                :class="page === currentPage ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-300 hover:border-blue-300 shadow-sm hover:shadow-md'" 
+                class="w-10 h-10 rounded-xl border transition-all duration-200 flex items-center justify-center font-medium">
+          {{ page }}
         </button>
       </div>
+      
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages || totalPages === 0" 
+              class="w-10 h-10 rounded-xl border transition-all duration-200 flex items-center justify-center" 
+              :class="currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-300 hover:border-blue-300 shadow-sm hover:shadow-md'">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button @click="goToPage(totalPages)" :disabled="currentPage === totalPages || totalPages === 0" 
+              class="w-10 h-10 rounded-xl border transition-all duration-200 flex items-center justify-center" 
+              :class="currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-white text-gray-700 hover:bg-blue-50 border-gray-300 hover:border-blue-300 shadow-sm hover:shadow-md'">
+        <i class="fas fa-angle-double-right"></i>
+      </button>
     </div>
 
-    <!-- 지원자 추가/수정 모달 -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4 relative animate-fadeIn">
-        <h3 class="text-xl font-bold text-gray-900 mb-6">
-          {{ isEditing ? '지원자 정보 수정' : '새 지원자 추가' }}
-        </h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-            <input type="date" v-model="form.interviewDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <!-- 지원자 추가/수정 모달 개선 -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <i class="fas fa-user-plus text-white text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-900">
+                {{ isEditing ? '지원자 정보 수정' : '새 지원자 추가' }}
+              </h3>
+              <p class="text-gray-600 text-sm">지원자 정보를 입력해주세요</p>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">시간</label>
-            <input type="time" v-model="form.interviewTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button @click="closeModal" 
+                  class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-calendar text-blue-500"></i>
+              날짜
+            </label>
+            <input type="date" v-model="form.interviewDate" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">면접실</label>
-            <input type="text" v-model="form.room" placeholder="예: 회의실A" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-clock text-green-500"></i>
+              시간
+            </label>
+            <input type="time" v-model="form.interviewTime" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">지원자 이름</label>
-            <input type="text" v-model="form.name" placeholder="이름을 입력하세요" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-door-open text-purple-500"></i>
+              면접실
+            </label>
+            <input type="text" v-model="form.room" placeholder="예: 회의실A" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">면접관 (쉼표로 구분)</label>
-            <input type="text" v-model="form.interviewersString" placeholder="예: 김민수, 이지원" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-user text-red-500"></i>
+              지원자 이름
+            </label>
+            <input type="text" v-model="form.name" placeholder="이름을 입력하세요" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
-            <select v-model="form.status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="col-span-2 space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-users text-orange-500"></i>
+              면접관 (쉼표로 구분)
+            </label>
+            <input type="text" v-model="form.interviewersString" placeholder="예: 김민수, 이지원" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-flag text-indigo-500"></i>
+              상태
+            </label>
+            <select v-model="form.status" 
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
               <option value="SCHEDULED">예정</option>
               <option value="IN_PROGRESS">진행중</option>
               <option value="COMPLETED">완료</option>
               <option value="CANCELLED">취소</option>
               <option value="UNDECIDED">미정</option>
             </select>
-            <div v-if="form.status" class="mt-1">
+            <div v-if="form.status" class="mt-2">
               <span :class="{
-                'px-2 py-1 text-xs font-medium rounded-full': true,
-                'bg-yellow-100 text-yellow-800': form.status === 'SCHEDULED' || form.status === 'UNDECIDED',
-                'bg-blue-100 text-blue-800': form.status === 'IN_PROGRESS',
-                'bg-green-100 text-green-800': form.status === 'COMPLETED',
-                'bg-gray-100 text-gray-800': form.status === 'CANCELLED'
+                'px-3 py-1 text-xs font-medium rounded-full border': true,
+                'bg-yellow-50 text-yellow-700 border-yellow-200': form.status === 'SCHEDULED' || form.status === 'UNDECIDED',
+                'bg-blue-50 text-blue-700 border-blue-200': form.status === 'IN_PROGRESS',
+                'bg-green-50 text-green-700 border-green-200': form.status === 'COMPLETED',
+                'bg-gray-50 text-gray-700 border-gray-200': form.status === 'CANCELLED'
               }">{{ getStatusText(form.status) }}</span>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">점수 (0-100)</label>
-            <input type="number" v-model="form.score" min="0" max="100" placeholder="점수를 입력하세요" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <i class="fas fa-star text-yellow-500"></i>
+              점수 (0-100)
+            </label>
+            <input type="number" v-model="form.score" min="0" max="100" placeholder="점수를 입력하세요" 
+                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button
-            @click="closeModal"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-          >
+        
+        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
+          <button @click="closeModal"
+                  class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium">
             취소
           </button>
-          <button
-            @click="isEditing ? updateCandidate() : addCandidate()"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            {{ isEditing ? '수정' : '추가' }}
+          <button @click="isEditing ? updateCandidate() : addCandidate()"
+                  class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/25">
+            {{ isEditing ? '수정 완료' : '추가하기' }}
           </button>
         </div>
       </div>
     </div>
     
-    <!-- 삭제 모달 -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 relative animate-fadeIn">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">지원자 삭제</h3>
-        <p class="text-gray-700 mb-6">정말로 {{ deletingCandidate?.name }} 지원자를 삭제하시겠습니까?</p>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="showDeleteModal = false; deletingCandidate = null"
-            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-          >
-            취소
-          </button>
-          <button
-            @click="confirmDeleteCandidate"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            삭제
-          </button>
+    <!-- 삭제 모달 개선 -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">지원자 삭제</h3>
+          <p class="text-gray-600 mb-8">
+            정말로 <span class="font-semibold text-gray-900">{{ deletingCandidate?.name }}</span> 지원자를 삭제하시겠습니까?<br>
+            이 작업은 되돌릴 수 없습니다.
+          </p>
+          <div class="flex gap-4">
+            <button @click="showDeleteModal = false; deletingCandidate = null"
+                    class="flex-1 px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200 font-medium">
+              취소
+            </button>
+            <button @click="confirmDeleteCandidate"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg shadow-red-500/25">
+              삭제
+            </button>
+          </div>
         </div>
       </div>
     </div>

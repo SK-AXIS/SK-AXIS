@@ -122,3 +122,25 @@ export const getInterviewSchedules = async (date: string): Promise<ScheduleRespo
     };
   }
 };
+
+// 특정 intervieweeId로 simple API에서 면접자 정보를 반환하는 함수
+export const getIntervieweeInfoById = async (intervieweeId: number) => {
+  try {
+    const response = await fetch('http://3.38.218.18:8080/api/v1/interviews/simple', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const contentType = response.headers.get('content-type');
+    if (!response.ok || !contentType || !contentType.includes('application/json')) {
+      return null;
+    }
+    const apiResponse = await response.json();
+    if (!apiResponse.data || !Array.isArray(apiResponse.data)) return null;
+    return apiResponse.data.find((item: any) => item.intervieweeId === intervieweeId) || null;
+  } catch (e) {
+    console.error('getIntervieweeInfoById 오류:', e);
+    return null;
+  }
+};

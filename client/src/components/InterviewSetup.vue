@@ -1,154 +1,212 @@
 <!-- InterviewSetup.vue -->
 <template>
-  <div class="min-h-screen bg-white flex justify-center items-center relative">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex justify-center items-center relative overflow-hidden">
+    <!-- 배경 장식 요소들 -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-3xl -translate-x-48 -translate-y-48"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-red-200/30 to-orange-200/30 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
+    <div class="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-green-200/40 to-blue-200/40 rounded-full blur-2xl"></div>
+    
+    <!-- 관리자 로그인 버튼 -->
     <button 
       @click="showAdminLogin = true"
-      class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+      class="absolute top-6 right-6 w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-white text-gray-600 hover:text-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group border border-gray-200/50"
     >
-      <i class="fas fa-cog text-2xl"></i>
+      <i class="fas fa-cog text-lg group-hover:rotate-90 transition-transform duration-300"></i>
     </button>
-    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-      <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold">
-          <span class="text-red-600">SK</span><span class="text-orange-500">AXIS</span>
-        </h1>
-      </div>
+
+    <div class="w-full max-w-2xl bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden">
+      <!-- 카드 내부 장식 -->
+      <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/10 to-orange-400/10 rounded-full -translate-y-16 translate-x-16"></div>
       
-      <!-- 면접관 환영 문구 추가 -->
-      <div class="text-center mb-8">
-        <h2 class="text-2xl font-bold mb-2 text-gray-800">AI 면접 시스템</h2>
-        <div class="mt-4 p-6 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl shadow-lg border-2 border-red-100">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-red-600 to-orange-500 rounded-full flex items-center justify-center shadow-md">
-              <i class="fas fa-user text-lg text-white"></i>
+      <div class="relative p-8 md:p-10">
+        <!-- 헤더 섹션 -->
+        <div class="text-center mb-10">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl mb-6 shadow-xl shadow-red-500/25">
+            <i class="fas fa-chart-line text-white text-2xl"></i>
+          </div>
+          <h1 class="text-4xl font-bold mb-2">
+            <span class="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">SK</span><span class="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">AXIS</span>
+          </h1>
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">AI 면접 시스템</h2>
+          
+          <!-- 면접관 환영 메시지 -->
+          <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50">
+            <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center">
+              <i class="fas fa-user text-white text-sm"></i>
             </div>
-            <div class="flex-1">
-              <h3 class="text-xl font-bold mb-1 tracking-wide">
-                <span class="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
-                  {{ userDisplayName }}님 환영합니다
-                </span>
-              </h3>
+            <span class="text-gray-700 font-medium">
+              안녕하세요, <span class="font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">{{ userDisplayName }}</span>님!
+            </span>
+          </div>
+        </div>
+
+        <!-- 면접 설정 폼 -->
+        <div class="space-y-8">
+          <!-- 날짜 및 호실 선택 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 면접 날짜 -->
+            <div class="space-y-3">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <i class="fas fa-calendar-alt text-blue-500"></i>
+                면접 날짜
+              </label>
+              <input
+                type="date"
+                v-model="selectedDate"
+                class="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+              />
             </div>
-          </div>
-          <div class="text-center">
-            <p class="text-gray-800 text-lg font-medium tracking-wide">
-              오늘도 <span class="font-bold text-red-600">SK</span><span class="font-bold text-orange-500">AXIS</span>와 함께
-              <br class="hidden sm:block">
-              좋은 인재를 찾아보세요
-              <i class="fas fa-star text-yellow-400 ml-2 animate-pulse"></i>
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="text-center mb-6">
-        <p class="text-gray-600">면접 호실과 시간을 선택해주세요</p>
-      </div>
-      
-      <!-- 날짜 선택 부분 -->
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">면접 날짜</label>
-        <input
-          type="date"
-          v-model="selectedDate"
-          class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-        />
-      </div>
-      <!-- 면접실 선택 부분 -->
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">면접 호실</label>
-        <div class="relative">
-          <div
-            @click="toggleRoomDropdown"
-            class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer text-gray-700 flex justify-between items-center"
-          >
-            <span v-if="selectedRoom">{{ rooms.find(r => r.id === selectedRoom)?.name }}</span>
-            <span v-else class="text-gray-500">면접 호실을 선택해주세요</span>
-            <i class="fas fa-chevron-down text-gray-600"></i>
-          </div>
-          <div v-if="showRoomDropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-            <div
-              v-for="room in rooms"
-              :key="room.id"
-              @click="selectRoom(room.id)"
-              class="px-3 py-2 hover:bg-gray-50 cursor-pointer"
-            >
-              {{ room.name }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mb-6" v-if="selectedRoom">
-        <label class="block text-sm font-medium text-gray-700 mb-2">면접 일정</label>
-        <div v-if="loading" class="text-center py-4">
-          <i class="fas fa-spinner fa-spin text-gray-500"></i>
-          <span class="ml-2 text-gray-500">일정을 불러오는 중...</span>
-        </div>
-        <div v-else-if="error" class="text-center py-4 text-red-500">
-          {{ error }}
-        </div>
-        <div v-else class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr class="bg-gray-50">
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b">시간</th>
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b">면접관</th>
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b">지원자</th>
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b w-20">선택</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="schedule in filteredSchedules" :key="schedule.timeRange" class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-center text-sm text-gray-700 border-b">{{ schedule.timeRange }}</td>
-                <td class="px-4 py-3 text-center text-sm text-gray-700 border-b whitespace-pre-line">{{ schedule.interviewers.join('\n') }}</td>
-                <td class="px-4 py-3 text-center text-sm text-gray-700 border-b whitespace-pre-line">{{ getIntervieweeNames(schedule.interviewees) }}</td>
-                <td class="px-4 py-3 text-center border-b">
-                  <button
-                    @click="selectTimeSlot(schedule)"
-                    class="px-3 py-2 text-white rounded text-sm transition-colors whitespace-nowrap min-h-[32px] flex items-center justify-center"
-                    :class="{
-                      'bg-green-600 hover:bg-green-700': selectedSchedule && 
-                        selectedSchedule.roomName === schedule.roomName && 
-                        selectedSchedule.timeRange === schedule.timeRange,
-                      'bg-red-600 hover:bg-red-700': !selectedSchedule || 
-                        selectedSchedule.roomName !== schedule.roomName || 
-                        selectedSchedule.timeRange !== schedule.timeRange
-                    }"
+
+            <!-- 면접 호실 -->
+            <div class="space-y-3">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <i class="fas fa-door-open text-purple-500"></i>
+                면접 호실
+              </label>
+              <div class="relative">
+                <div
+                  @click="toggleRoomDropdown"
+                  class="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 cursor-pointer text-gray-700 flex justify-between items-center hover:bg-gray-100/80"
+                >
+                  <span v-if="selectedRoom" class="font-medium">{{ rooms.find(r => r.id === selectedRoom)?.name }}</span>
+                  <span v-else class="text-gray-500">면접 호실을 선택해주세요</span>
+                  <i class="fas fa-chevron-down text-gray-600 transition-transform duration-200" :class="{ 'rotate-180': showRoomDropdown }"></i>
+                </div>
+                <div v-if="showRoomDropdown" class="absolute z-10 mt-2 w-full bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                  <div
+                    v-for="room in rooms"
+                    :key="room.id"
+                    @click="selectRoom(room.id)"
+                    class="px-4 py-3 hover:bg-red-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0 font-medium"
                   >
-                    {{ selectedSchedule && 
-                       selectedSchedule.roomName === schedule.roomName && 
-                       selectedSchedule.timeRange === schedule.timeRange ? '선택됨' : '선택' }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    {{ room.name }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 면접 일정 테이블 -->
+          <div v-if="selectedRoom" class="space-y-4">
+            <div class="flex items-center gap-2 mb-4">
+              <i class="fas fa-clock text-green-500"></i>
+              <h3 class="text-lg font-semibold text-gray-800">면접 일정</h3>
+            </div>
+
+            <div v-if="loading" class="text-center py-12 bg-gray-50/50 rounded-2xl">
+              <i class="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
+              <p class="text-gray-600 font-medium">일정을 불러오는 중...</p>
+            </div>
+
+            <div v-else-if="error" class="text-center py-12 bg-red-50/50 rounded-2xl">
+              <i class="fas fa-exclamation-triangle text-3xl text-red-400 mb-4"></i>
+              <p class="text-red-600 font-medium">{{ error }}</p>
+            </div>
+
+            <div v-else class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        <i class="fas fa-clock mr-2 text-blue-500"></i>시간
+                      </th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        <i class="fas fa-user-tie mr-2 text-green-500"></i>면접관
+                      </th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                        <i class="fas fa-user mr-2 text-purple-500"></i>지원자
+                      </th>
+                      <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700 w-32">
+                        <i class="fas fa-hand-pointer mr-2 text-orange-500"></i>선택
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="schedule in filteredSchedules" :key="schedule.timeRange" 
+                        class="hover:bg-red-50/30 transition-colors duration-200"
+                        :class="{ 'bg-red-50/20': selectedSchedule && selectedSchedule.roomName === schedule.roomName && selectedSchedule.timeRange === schedule.timeRange }">
+                      <td class="px-6 py-4 text-sm font-medium text-gray-800 border-t border-gray-200/50">
+                        {{ schedule.timeRange }}
+                      </td>
+                      <td class="px-6 py-4 text-sm text-gray-700 border-t border-gray-200/50">
+                        <div class="space-y-1">
+                          <div v-for="interviewer in schedule.interviewers" :key="interviewer" class="flex items-center gap-2">
+                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                            {{ interviewer }}
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-sm text-gray-700 border-t border-gray-200/50">
+                        <div class="space-y-1">
+                          <div v-for="name in getIntervieweeNames(schedule.interviewees).split('\n').filter(n => n)" :key="name" class="flex items-center gap-2">
+                            <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            {{ name }}
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 text-center border-t border-gray-200/50">
+                        <button
+                          @click="selectTimeSlot(schedule)"
+                          class="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg"
+                          :class="{
+                            'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-500/25 hover:from-green-600 hover:to-green-700': selectedSchedule && 
+                              selectedSchedule.roomName === schedule.roomName && 
+                              selectedSchedule.timeRange === schedule.timeRange,
+                            'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-500/25 hover:from-red-600 hover:to-red-700': !selectedSchedule || 
+                              selectedSchedule.roomName !== schedule.roomName || 
+                              selectedSchedule.timeRange !== schedule.timeRange
+                          }"
+                        >
+                          <i class="fas" :class="{
+                            'fa-check': selectedSchedule && selectedSchedule.roomName === schedule.roomName && selectedSchedule.timeRange === schedule.timeRange,
+                            'fa-hand-pointer': !selectedSchedule || selectedSchedule.roomName !== schedule.roomName || selectedSchedule.timeRange !== schedule.timeRange
+                          }"></i>
+                          {{ selectedSchedule && 
+                             selectedSchedule.roomName === schedule.roomName && 
+                             selectedSchedule.timeRange === schedule.timeRange ? '선택됨' : '선택' }}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 버튼 영역 -->
+          <div class="flex flex-col sm:flex-row gap-4 pt-6">
+            <button 
+              @click="logout"
+              class="px-6 py-3 text-gray-600 hover:text-gray-800 transition-all duration-300 flex items-center justify-center gap-2 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              로그아웃
+            </button>
+            
+            <button
+              class="flex-1 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2"
+              :disabled="!canProceed"
+              :class="{
+                'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-red-500/25 hover:shadow-red-500/40': canProceed && isToday,
+                'bg-gray-400 text-white cursor-not-allowed shadow-gray-400/25': !canProceed || !isToday
+              }"
+              @click="onStartInterview"
+            >
+              <i class="fas" :class="{
+                'fa-play': isToday,
+                'fa-calendar-times': !isToday
+              }"></i>
+              {{ isToday ? '면접 시작하기' : '오늘 날짜의 면접만 시작할 수 있습니다' }}
+            </button>
+          </div>
         </div>
-      </div>
-      <!-- 버튼 영역을 flex로 배치 -->
-      <div class="flex gap-4">
-        <button 
-          @click="logout"
-          class="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer flex items-center gap-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          <i class="fas fa-sign-out-alt"></i>
-          로그아웃
-        </button>
-        <button
-          class="flex-1 bg-red-600 text-white py-3 rounded-md font-medium hover:bg-red-700 transition-colors !rounded-button whitespace-nowrap cursor-pointer"
-          :disabled="!canProceed"
-          :class="{
-            'opacity-50 cursor-not-allowed': !canProceed,
-            'bg-gray-400': !isToday
-          }"
-          @click="onStartInterview"
-        >
-          {{ isToday ? '면접 시작하기' : '오늘 날짜의 면접만 시작할 수 있습니다' }}
-        </button>
-      </div>
-      <div class="mt-6 text-center text-xs text-gray-500">
-        <p>© 2025 SK AXIS. All rights reserved.</p>
-        <p>2025년 6월 16일 최신 기준</p>
+
+        <!-- 푸터 -->
+        <div class="mt-12 pt-8 border-t border-gray-200/50 text-center space-y-2">
+          <p class="text-xs text-gray-500 font-medium">© 2025 SK AXIS. All rights reserved.</p>
+          <p class="text-xs text-gray-400">Secure · Smart · Simple</p>
+        </div>
       </div>
     </div>
     
@@ -225,6 +283,7 @@ const toggleRoomDropdown = () => { showRoomDropdown.value = !showRoomDropdown.va
 const selectRoom = (roomId: string) => {
   selectedRoom.value = roomId;
   selectedTimeSlot.value = '';
+  selectedSchedule.value = null;
   showRoomDropdown.value = false;
 };
 
@@ -254,6 +313,9 @@ const selectTimeSlot = (schedule: any) => {
 
 // 날짜가 변경될 때마다 일정을 다시 불러옵니다
 watch(selectedDate, () => {
+  selectedRoom.value = '';
+  selectedTimeSlot.value = '';
+  selectedSchedule.value = null;
   fetchSchedules();
 });
 
@@ -314,6 +376,8 @@ const handleAdminLogin = () => {
 
 // 로그아웃 함수 추가
 const logout = () => {
+  // localStorage 클리어
+  localStorage.clear();
   // 메인 로그인 페이지로 이동
   router.push('/');
 };
@@ -336,3 +400,45 @@ onMounted(() => {
   });
 });
 </script>
+
+<style scoped>
+/* 그라데이션 텍스트 */
+.bg-clip-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ef4444, #f97316);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #dc2626, #ea580c);
+}
+
+/* 폼 요소 애니메이션 */
+input:focus, select:focus {
+  transform: translateY(-1px);
+}
+
+/* 버튼 호버 효과 */
+button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 테이블 행 호버 효과 */
+tbody tr:hover {
+  transform: translateY(-1px);
+}
+</style>

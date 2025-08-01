@@ -49,18 +49,18 @@
             <div>
               <h3 class="text-xl font-bold text-gray-900 mb-4">면접자 정보</h3>
               <div class="space-y-2">
-                <p class="text-gray-700"><span class="font-medium">이름:</span> {{ result.candidateInfo.name }}</p>
-                <p class="text-gray-700"><span class="font-medium">지원 직무:</span> {{ result.candidateInfo.position }}</p>
-                <p class="text-gray-700"><span class="font-medium">지원 부서:</span> {{ result.candidateInfo.department }}</p>
+                <p class="text-gray-700"><span class="font-medium">이름:</span> {{ result.candidateInfo?.name ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">지원 직무:</span> {{ result.candidateInfo?.position ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">지원 부서:</span> {{ result.candidateInfo?.department ?? '-' }}</p>
               </div>
             </div>
             <div>
               <h3 class="text-xl font-bold text-gray-900 mb-4">면접 정보</h3>
               <div class="space-y-2">
-                <p class="text-gray-700"><span class="font-medium">면접 일시:</span> {{ result.candidateInfo.interviewDate }}</p>
-                <p class="text-gray-700"><span class="font-medium">면접 시간:</span> {{ result.candidateInfo.interviewTime }}</p>
-                <p class="text-gray-700"><span class="font-medium">면접 장소:</span> {{ result.candidateInfo.room ?? '-' }}</p>
-                <p class="text-gray-700"><span class="font-medium">면접관:</span> {{ result.candidateInfo.interviewers?.join(', ') ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">면접 일시:</span> {{ result.candidateInfo?.interviewDate ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">면접 시간:</span> {{ result.candidateInfo?.interviewTime ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">면접 장소:</span> {{ result.candidateInfo?.room ?? '-' }}</p>
+                <p class="text-gray-700"><span class="font-medium">면접관:</span> {{ result.candidateInfo?.interviewers?.join(', ') ?? '-' }}</p>
               </div>
             </div>
           </div>
@@ -134,51 +134,6 @@
               <h4 class="text-lg font-semibold text-blue-600 mb-2">② 비언어적 요소</h4>
               <div class="flex flex-wrap gap-6">
                 <div>
-                  <span class="font-medium text-gray-700">미소:</span>
-                  <span class="ml-2 text-gray-900">
-                    {{ result.value?.overallEvaluation?.nonverbal?.smileCount ?? '-' }}
-                    <span v-if="result.value?.overallEvaluation?.nonverbal?.totalCount">
-                      / {{ result.value?.overallEvaluation?.nonverbal?.totalCount }} ({{ getPercent(result.value?.overallEvaluation?.nonverbal?.smileCount, result.value?.overallEvaluation?.nonverbal?.totalCount) }}%)
-                    </span>
-                  </span>
-                </div>
-                <div>
-                  <span class="font-medium text-gray-700">울상:</span>
-                  <span class="ml-2 text-gray-900">
-                    {{ result.value?.overallEvaluation?.nonverbal?.frownCount ?? '-' }}
-                    <span v-if="result.value?.overallEvaluation?.nonverbal?.totalCount">
-                      / {{ result.value?.overallEvaluation?.nonverbal?.totalCount }} ({{ getPercent(result.value?.overallEvaluation?.nonverbal?.frownCount, result.value?.overallEvaluation?.nonverbal?.totalCount) }}%)
-                    </span>
-                  </span>
-                </div>
-                <div>
-                  <span class="font-medium text-gray-700">무표정:</span>
-                  <span class="ml-2 text-gray-900">
-                    {{ result.value?.overallEvaluation?.nonverbal?.neutralCount ?? '-' }}
-                    <span v-if="result.value?.overallEvaluation?.nonverbal?.totalCount">
-                      / {{ result.value?.overallEvaluation?.nonverbal?.totalCount }} ({{ getPercent(result.value?.overallEvaluation?.nonverbal?.neutralCount, result.value?.overallEvaluation?.nonverbal?.totalCount) }}%)
-                    </span>
-                  </span>
-                </div>
-                <div>
-                  <span class="font-medium text-gray-700">제스처:</span>
-                  <span class="ml-2 text-gray-900">
-                    {{ result.value?.overallEvaluation?.nonverbal?.gestureCount ?? '-' }}
-                    <span v-if="result.value?.overallEvaluation?.nonverbal?.totalCount">
-                      / {{ result.value?.overallEvaluation?.nonverbal?.totalCount }} ({{ getPercent(result.value?.overallEvaluation?.nonverbal?.gestureCount, result.value?.overallEvaluation?.nonverbal?.totalCount) }}%)
-                    </span>
-                  </span>
-                </div>
-                <div>
-                  <span class="font-medium text-gray-700">시선:</span>
-                  <span class="ml-2 text-gray-900">
-                    {{ result.value?.overallEvaluation?.nonverbal?.gazeCount ?? '-' }}
-                    <span v-if="result.value?.overallEvaluation?.nonverbal?.totalCount">
-                      / {{ result.value?.overallEvaluation?.nonverbal?.totalCount }} ({{ getPercent(result.value?.overallEvaluation?.nonverbal?.gazeCount, result.value?.overallEvaluation?.nonverbal?.totalCount) }}%)
-                    </span>
-                  </span>
-                </div>
-                <div>
                   <span class="font-medium text-gray-700">점수:</span>
                   <span class="ml-2 text-gray-900">{{ result.value?.overallEvaluation?.nonverbal?.score ?? '-' }}</span>
                 </div>
@@ -207,21 +162,6 @@
             </div>
           </div>
         </div>
-        <!-- 면접 질문 및 답변 -->
-        <div id="interview-content" class="mb-8">
-          <h3 class="text-2xl font-bold text-gray-900 mb-6">면접 내용 요약</h3>
-          <div class="space-y-6">
-            <div v-for="(question, qIdx) in result.questions" :key="qIdx"
-              class="bg-gray-50 rounded-lg p-6">
-              <div class="mb-4">
-                <h4 class="text-lg font-semibold text-gray-900 mb-2">
-                  Q{{ qIdx + 1 }}. {{ question }}
-                </h4>
-                <p class="text-gray-700 pl-6">A: {{ result.answers[qIdx] }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- 다운로드 버튼 -->
         <div id="download-section" class="mt-12 text-center">
           <button @click="emitDownload"
@@ -238,6 +178,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { getIntervieweeInfoById } from '../services/interviewService';
 
 const router = useRouter();
 const route = useRoute();
@@ -368,11 +309,6 @@ function getEvaluationText(key: string, score: number | null) {
   }
 }
 
-function getPercent(count: number | null | undefined, total: number | null | undefined): string {
-  if (!total || total === 0 || count == null) return '-';
-  return ((count / total) * 100).toFixed(1);
-}
-
 // 목차
 const tocSections = [
   { id: 'basic-info', title: '기본 정보' },
@@ -416,8 +352,64 @@ onMounted(async () => {
     if (!res.ok) throw new Error('API 요청 실패');
     const data = await res.json();
     console.log('[InterviewResult.vue] /api/v1/results 응답:', data);
-    results.value = data.results;
+
+    // 응답을 UI에서 쓰는 구조로 변환
+    results.value = data.results.map((item: any) => {
+      // 역량별 평가 변환
+      const evaluationKeywords = Object.entries(item.competencies || {}).map(([category, score]) => ({
+        category,
+        score
+      }));
+      // 종합 점수 계산 (예시: verbal+nonverbal)
+      const totalScore = (item.verbal?.score ?? 0) + (item.nonverbal?.score ?? 0);
+      // 종합 평가 변환
+      const overallEvaluation = {
+        weight: '', // 필요시 data.weights에서 추출
+        language: {
+          score: item.verbal?.score ?? '-',
+          maxScore: 90, // 실제 최대점수로 수정
+          reason: item.verbal?.reason ?? '-'
+        },
+        nonverbal: {
+          score: item.nonverbal?.score ?? '-',
+          maxScore: 10, // 실제 최대점수로 수정
+          reason: item.nonverbal?.reason ?? '-'
+        },
+        totalScore: totalScore,
+        totalMaxScore: 40, // 실제 최대점수로 수정
+        totalReason: [item.verbal?.reason, item.nonverbal?.reason].filter(Boolean).join(' / ')
+      };
+      return {
+        score: totalScore,
+        candidateInfo: item.candidateInfo || {},
+        value: {
+          evaluationKeywords,
+          overallEvaluation
+        },
+        questions: item.questions || [],
+        answers: item.answers || []
+      };
+    });
     weights.value = data.weights;
+
+    // 항상 simple API로 id별 정보 보완
+    await Promise.all(results.value.map(async (result, idx) => {
+      const intervieweeId = candidateIds.value[idx];
+      const info = await getIntervieweeInfoById(intervieweeId);
+      if (info) {
+        if (!result.candidateInfo) result.candidateInfo = {};
+        result.candidateInfo.name = info.name || result.candidateInfo.name;
+        result.candidateInfo.position = info.position || result.candidateInfo.position;
+        result.candidateInfo.department = info.department || result.candidateInfo.department;
+        if (info.startAt) {
+          const dateObj = new Date(info.startAt);
+          result.candidateInfo.interviewDate = `${dateObj.getFullYear()}-${(dateObj.getMonth()+1).toString().padStart(2,'0')}-${dateObj.getDate().toString().padStart(2,'0')}`;
+          result.candidateInfo.interviewTime = `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
+        }
+        result.candidateInfo.room = info.roomNo || result.candidateInfo.room;
+        result.candidateInfo.interviewers = info.interviewers ? info.interviewers.split(',').map((i:string)=>i.trim()) : result.candidateInfo.interviewers;
+      }
+    }));
   } catch (e) {
     error.value = '면접 결과를 불러오는 데 실패했습니다.';
   } finally {

@@ -1,80 +1,89 @@
-<!-- DashboardMain.vue 수정 사항:
-
-1. updateFilter 함수 수정 - 전체 filters 객체를 올바르게 emit
-2. 검색 범위 확장 - 더 많은 필드에서 검색 가능
-3. 디버깅을 위한 콘솔 로그 추가
-
-DashboardMain.vue의 updateFilter 함수를 다음과 같이 수정하세요:
-
-```javascript
-// 필터 업데이트 함수 수정
-function updateFilter(key: string, value: string) {
-  const newFilters = { ...props.filters, [key]: value };
-  console.log('Filter updated:', key, value, newFilters); // 디버깅용
-  emits('updateFilters', newFilters);
-}
-```
-
-AdminDashboard.vue -->
+<!--AdminDashboard.vue -->
 <template>
-  <div class="bg-white z-50 min-h-screen">
+  <div class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
     <div class="flex min-h-screen">
-      <!-- 사이드바: 항상 고정 -->
-      <div class="w-64 bg-white border-r border-gray-200 h-screen shadow-sm flex flex-col justify-between fixed left-0 top-0 z-40">
+      <!-- 사이드바: 개선된 디자인 -->
+      <div class="w-72 bg-white border-r border-gray-200 h-screen shadow-xl flex flex-col justify-between fixed left-0 top-0 z-40 backdrop-blur-sm">
         <div>
-          <div class="p-6">
-            <div class="flex items-center gap-2 mb-8">
-              <h1 class="text-2xl font-bold">
-                <span class="text-red-600">SK</span><span class="text-orange-500">AXIS</span>
+          <div class="p-8 border-b border-gray-100">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-chart-line text-white text-lg"></i>
+              </div>
+              <h1 class="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+                SK<span class="text-orange-500">AXIS</span>
               </h1>
             </div>
-            <nav class="space-y-1">
+            <nav class="space-y-2">
               <a href="#" @click.prevent="setActiveView('dashboard')" 
-                 :class="activeView === 'dashboard' ? 'text-gray-900 bg-gray-100' : 'text-gray-600 hover:bg-gray-50'"
-                 class="flex items-center px-4 py-3 rounded-lg">
-                <i class="fas fa-tachometer-alt w-5" :class="activeView === 'dashboard' ? 'text-red-600' : 'text-gray-500'"></i>
-                <span class="ml-3" :class="activeView === 'dashboard' ? 'font-medium' : ''">대시보드</span>
+                 :class="activeView === 'dashboard' ? 'text-white bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+                 class="flex items-center px-4 py-3.5 rounded-xl transition-all duration-200 group">
+                <div :class="activeView === 'dashboard' ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200'" 
+                     class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200">
+                  <i class="fas fa-tachometer-alt" :class="activeView === 'dashboard' ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'"></i>
+                </div>
+                <span class="ml-4 font-medium">대시보드</span>
+                <div v-if="activeView === 'dashboard'" class="ml-auto w-2 h-2 bg-white rounded-full"></div>
               </a>
+              
               <a href="#" @click.prevent="setActiveView('candidates')"
-                 :class="activeView === 'candidates' ? 'text-gray-900 bg-gray-100' : 'text-gray-600 hover:bg-gray-50'"
-                 class="flex items-center px-4 py-3 rounded-lg">
-                <i class="fas fa-users w-5" :class="activeView === 'candidates' ? 'text-red-600' : 'text-gray-500'"></i>
-                <span class="ml-3" :class="activeView === 'candidates' ? 'font-medium' : ''">지원자 관리</span>
+                 :class="activeView === 'candidates' ? 'text-white bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+                 class="flex items-center px-4 py-3.5 rounded-xl transition-all duration-200 group">
+                <div :class="activeView === 'candidates' ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200'" 
+                     class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200">
+                  <i class="fas fa-users" :class="activeView === 'candidates' ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'"></i>
+                </div>
+                <span class="ml-4 font-medium">지원자 관리</span>
+                <div v-if="activeView === 'candidates'" class="ml-auto w-2 h-2 bg-white rounded-full"></div>
               </a>
-              <a href="#" @click.prevent="showCalendarView = true" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                <i class="fas fa-calendar-alt w-5 text-gray-500"></i>
-                <span class="ml-3">면접 일정</span>
+              
+              <a href="#" @click.prevent="showCalendarView = true" 
+                 class="flex items-center px-4 py-3.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-xl transition-all duration-200 group">
+                <div class="w-10 h-10 bg-gray-100 group-hover:bg-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                  <i class="fas fa-calendar-alt text-gray-500 group-hover:text-gray-700"></i>
+                </div>
+                <span class="ml-4 font-medium">면접 일정</span>
               </a>
-              <a href="#" @click.prevent="showStatistics" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                <i class="fas fa-chart-bar w-5 text-gray-500"></i>
-                <span class="ml-3">통계 분석</span>
+              
+              <a href="#" @click.prevent="showStatistics" 
+                 class="flex items-center px-4 py-3.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-xl transition-all duration-200 group">
+                <div class="w-10 h-10 bg-gray-100 group-hover:bg-gray-200 rounded-lg flex items-center justify-center transition-all duration-200">
+                  <i class="fas fa-chart-bar text-gray-500 group-hover:text-gray-700"></i>
+                </div>
+                <span class="ml-4 font-medium">통계 분석</span>
               </a>
+              
               <a href="#" @click.prevent="setActiveView('system-settings')"
-                 :class="activeView === 'system-settings' ? 'text-gray-900 bg-gray-100' : 'text-gray-600 hover:bg-gray-50'"
-                 class="flex items-center px-4 py-3 rounded-lg">
-                <i class="fas fa-cog w-5" :class="activeView === 'system-settings' ? 'text-red-600' : 'text-gray-500'"></i>
-                <span class="ml-3" :class="activeView === 'system-settings' ? 'font-medium' : ''">시스템 설정</span>
+                 :class="activeView === 'system-settings' ? 'text-white bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+                 class="flex items-center px-4 py-3.5 rounded-xl transition-all duration-200 group">
+                <div :class="activeView === 'system-settings' ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200'" 
+                     class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200">
+                  <i class="fas fa-cog" :class="activeView === 'system-settings' ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'"></i>
+                </div>
+                <span class="ml-4 font-medium">시스템 설정</span>
+                <div v-if="activeView === 'system-settings'" class="ml-auto w-2 h-2 bg-white rounded-full"></div>
               </a>
             </nav>
           </div>
         </div>
-        <div class="p-6 border-t border-gray-200">
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <i class="fas fa-user text-gray-500"></i>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">관리자</p>
-                <p class="text-xs text-gray-500">admin@skaxis.com</p>
-              </div>
+        
+        <!-- 사용자 정보 개선 -->
+        <div class="p-8 border-t border-gray-100">
+          <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+              <i class="fas fa-user text-white text-lg"></i>
             </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-gray-900">관리자</p>
+              <p class="text-xs text-gray-500">admin@skaxis.com</p>
+            </div>
+            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
           </div>
         </div>
       </div>
       
       <!-- 메인 콘텐츠: 사이드바 오른쪽에 위치, 스크롤 가능 -->
-      <div class="flex-1 ml-64">
+      <div class="flex-1 ml-72">
         <DashboardMain
           v-if="activeView === 'dashboard'"
           :candidateList="candidateList"
@@ -397,13 +406,47 @@ onMounted(async () => {
   to { opacity: 1; }
 }
 
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* 그라데이션 텍스트 */
+.bg-clip-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ef4444, #f97316);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #dc2626, #ea580c);
 }
 </style>

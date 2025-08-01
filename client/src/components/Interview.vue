@@ -1,86 +1,144 @@
 <template>
   <div class="fixed inset-0 bg-white z-50 overflow-auto">
     <div class="container mx-auto px-4 py-6">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-900">면접 진행</h3>
-        <button @click="close" class="text-gray-400 hover:text-gray-600 cursor-pointer">
-          <i class="fas fa-times text-xl"></i>
+      <!-- 헤더 개선 -->
+      <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-video text-white text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900">면접 진행</h3>
+            <p class="text-gray-600 text-sm">AI 면접 시스템</p>
+          </div>
+        </div>
+        <button @click="close" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all duration-200 group">
+          <i class="fas fa-times text-gray-600 group-hover:text-gray-800"></i>
         </button>
       </div>
-      <div class="bg-gray-50 rounded-lg p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="flex items-center gap-2">
-            <i class="fas fa-door-open text-red-600"></i>
-            <span class="text-gray-700">면접실: {{ roomName }}</span>
+
+      <!-- 면접 정보 카드 개선 -->
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+              <i class="fas fa-door-open text-red-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 font-medium">면접실</p>
+              <p class="text-lg font-bold text-gray-900">{{ roomName }}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <i class="fas fa-clock text-red-600"></i>
-            <span class="text-gray-700">시간: {{ timeRange }}</span>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+              <i class="fas fa-clock text-blue-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 font-medium">시간</p>
+              <p class="text-lg font-bold text-gray-900">{{ timeRange }}</p>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <i class="fas fa-users text-red-600"></i>
-            <span class="text-gray-700">면접관: {{ interviewers }}</span>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+              <i class="fas fa-users text-green-600 text-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 font-medium">면접관</p>
+              <p class="text-lg font-bold text-gray-900">{{ interviewers }}</p>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="mb-8">
-        <!-- 질문 영역 조건부 렌더링 -->
+        <!-- 질문 영역 개선 -->
         <div v-if="Object.keys(questionsPerInterviewee).length > 0" class="grid" :class="[candidates.length > 1 ? 'grid-cols-2 gap-6' : 'grid-cols-1']">
-          <div v-for="(candidate, index) in candidates" :key="index" class="bg-white rounded-lg shadow-lg p-6">
-            <div class="flex justify-between items-center mb-4">
-              <h4 class="text-xl font-semibold text-gray-900">{{ candidate }} 님</h4>
-              <span class="text-sm text-gray-500">지원자 {{ index + 1 }}</span>
-            </div>
-            <div class="space-y-4">
-              <div v-if="Object.keys(questionsPerInterviewee).length === 0" class="p-4 bg-gray-50 rounded-lg">
-                <div class="flex items-center gap-3 mb-2">
-                  <i class="fas fa-spinner fa-spin text-red-600"></i>
-                  <span class="text-gray-600">질문을 불러오는 중...</span>
+          <div v-for="(candidate, index) in candidates" :key="index" class="bg-white rounded-2xl shadow-lg border border-gray-100">
+            
+            <!-- 지원자 헤더 -->
+            <div class="bg-gray-50 px-6 py-4 rounded-t-2xl border-b border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-lg font-bold text-gray-900">{{ candidate }}님</h4>
+                  <p class="text-sm text-gray-500">지원자 {{ index + 1 }}</p>
+                </div>
+                <div class="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-sm font-medium">
+                  {{ questionsPerInterviewee[candidateIds[index]]?.length || 0 }}개 질문
                 </div>
               </div>
-              <div v-else>
-                <!-- 각 지원자별 질문만 렌더링 -->
-                <div v-for="(question, qIndex) in questionsPerInterviewee[candidateIds[index]]" :key="question.questionId" class="p-4 bg-gray-50 rounded-lg mb-4">
-                  <div class="flex items-center gap-3 mb-2">
-                    <span class="flex items-center justify-center w-6 h-6 bg-red-600 text-white rounded-full text-sm font-medium">
-                      {{ qIndex + 1 }}
-                    </span>
-                    <h5 class="font-medium text-gray-900">
-                      {{ question.type === '공통질문' ? '공통 질문' : '개별 질문' }} {{ qIndex + 1 }}
-                    </h5>
+            </div>
+
+            <!-- 질문 목록 -->
+            <div class="p-6">
+              <div v-if="Object.keys(questionsPerInterviewee).length === 0" class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600">질문을 불러오는 중...</p>
+              </div>
+              
+              <div v-else class="space-y-4">
+                <div v-for="(question, qIndex) in questionsPerInterviewee[candidateIds[index]]" 
+                     :key="question.questionId" 
+                     class="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                  
+                  <!-- 질문 번호 -->
+                  <div class="flex-shrink-0 w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white text-sm font-bold">{{ qIndex + 1 }}</span>
                   </div>
-                  <p class="text-gray-700 ml-9">{{ question.content }}</p>
+                  
+                  <!-- 질문 내용 -->
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium"
+                            :class="{
+                              'bg-blue-100 text-blue-700 border border-blue-200': question.type === '공통질문',
+                              'bg-orange-100 text-orange-700 border border-orange-200': question.type !== '공통질문'
+                            }">
+                        {{ question.type === '공통질문' ? '공통 질문' : '개별 질문' }}
+                      </span>
+                    </div>
+                    <p class="text-gray-800 leading-relaxed font-medium">{{ question.content }}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="flex justify-center space-x-4 mt-8">
+
+        <!-- 버튼 영역 개선 -->
+        <div class="flex flex-wrap justify-center gap-4 mt-10">
           <button
-            class="px-8 py-3 rounded-lg font-medium !rounded-button whitespace-nowrap cursor-pointer flex items-center gap-2 transition-colors"
+            class="group px-8 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg flex items-center gap-3 min-w-[160px] justify-center"
             :class="{
-              'bg-green-600 text-white hover:bg-green-700': !isSessionStarted,
-              'bg-gray-400 text-gray-200 cursor-not-allowed': isSessionStarted
+              'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-green-500/25 hover:shadow-green-500/40': !isSessionStarted,
+              'bg-gray-400 text-gray-200 cursor-not-allowed shadow-gray-400/25': isSessionStarted
             }"
             @click="startSession"
             :disabled="isSessionStarted"
           >
-            <i class="fas fa-play"></i>
-            {{ isSessionStarted ? '면접 진행 중' : '면접 시작' }}
+            <div class="flex items-center justify-center w-5 h-5">
+              <i class="fas fa-play text-sm" :class="{ 'animate-pulse': isSessionStarted }"></i>
+            </div>
+            <span>{{ isSessionStarted ? '면접 진행 중' : '면접 시작' }}</span>
           </button>
+          
           <button
-            class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium !rounded-button whitespace-nowrap cursor-pointer flex items-center gap-2"
+            class="group px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-red-500/25 hover:shadow-red-500/40 flex items-center gap-3 min-w-[160px] justify-center"
             @click="endSession"
           >
-            <i class="fas fa-stop"></i>
-            면접 종료
+            <div class="flex items-center justify-center w-5 h-5">
+              <i class="fas fa-stop text-sm group-hover:scale-110 transition-transform"></i>
+            </div>
+            <span>면접 종료</span>
           </button>
+          
           <button
-            class="px-8 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 font-medium !rounded-button whitespace-nowrap cursor-pointer flex items-center gap-2"
+            class="group px-8 py-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center gap-3 min-w-[160px] justify-center"
             @click="close"
           >
-            <i class="fas fa-times"></i>
-            취소
+            <div class="flex items-center justify-center w-5 h-5">
+              <i class="fas fa-times text-sm group-hover:scale-110 transition-transform"></i>
+            </div>
+            <span>취소</span>
           </button>
         </div>
       </div>
@@ -257,7 +315,7 @@ const endSession = async () => {
       )
     };
     console.log('[면접 종료] 전송되는 request body:', requestBody);
-            const response = await fetch('http://3.38.218.18:8000/api/v1/interview/end', {
+    const response = await fetch('/api/ai/interview/end', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -312,7 +370,7 @@ async function pollUntilDone(candidateIds: number[]) {
   
   while (attempts < maxAttempts) {
     try {
-      const response = await fetch(`http://3.38.218.18:8000/api/v1/results/statuses?interviewee_ids=${ids}`);
+      const response = await fetch(`http://3.38.218.18:8000/api/ai/results/statuses?interviewee_ids=${ids}`);
       const statuses: { status: string }[] = await response.json();
       console.log('[pollUntilDone] 현재 status 응답:', statuses);
       const allDone = statuses.every((item: { status: string }) => item.status === 'DONE');
@@ -321,7 +379,7 @@ async function pollUntilDone(candidateIds: number[]) {
         
         // ✅ Spring Boot /complete 엔드포인트 호출 추가
         try {
-          const completeResponse = await fetch('/api/v1/interviews/complete', {
+          const completeResponse = await fetch('http://3.38.218.18:8080/api/v1/interviews/complete', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -363,3 +421,30 @@ const close = () => {
 //   startSession()
 // })
 </script>
+
+<style scoped>
+/* 그라데이션 텍스트 */
+.bg-clip-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 커스텀 스크롤바 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>
